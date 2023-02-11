@@ -1,0 +1,13 @@
+apiVersion: v1
+entries:
+  hypershift-helm:
+  - apiVersion: v2
+    created: "2023-02-11T23:02:36.198417647Z"
+    description: A Helm chart for deploying hypershift clusters on Bare Metal
+    digest: 9a17d3ade3ee0b9f228c6540d39b14ad0f59882e1aa68e8c17ba9b33c7721a97
+    name: hypershift-helm
+    type: application
+    urls:
+    - https://github.com/loganmc10/hypershift-helm/releases/download/hypershift-helm-0.1.4/hypershift-helm-0.1.4.tgz
+    version: 0.1.4
+generated: "2023-02-11T23:02:36.198425648Z"
