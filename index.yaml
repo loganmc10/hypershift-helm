@@ -1,5 +1,15 @@
 apiVersion: v1
 entries:
+  deploy-cluster:
+  - apiVersion: v2
+    created: "2023-02-11T23:40:14.675605496Z"
+    description: A Helm chart for deploying hypershift clusters on Bare Metal
+    digest: dd2f68664c267dcc6d1fcd0e8b1059ed18a8a9fafc6c58564411e6394eecd40a
+    name: deploy-cluster
+    type: application
+    urls:
+    - https://github.com/loganmc10/hypershift-helm/releases/download/deploy-cluster-0.1.4/deploy-cluster-0.1.4.tgz
+    version: 0.1.4
   hypershift-helm:
   - apiVersion: v2
     created: "2023-02-11T23:02:36.198417647Z"
@@ -10,4 +20,4 @@ entries:
     urls:
     - https://github.com/loganmc10/hypershift-helm/releases/download/hypershift-helm-0.1.4/hypershift-helm-0.1.4.tgz
     version: 0.1.4
-generated: "2023-02-11T23:02:36.198425648Z"
+generated: "2023-02-11T23:40:14.675609996Z"
