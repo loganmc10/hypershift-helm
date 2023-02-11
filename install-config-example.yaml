@@ -7,7 +7,7 @@ hypershift:
     - pool.ntp.org
   configuration: # Optional, see https://hypershift-docs.netlify.app/how-to/cluster-configuration/
   nodePoolConfigRefs: # Optional, see https://hypershift-docs.netlify.app/reference/api/#hypershift.openshift.io/v1beta1.NodePoolSpec
-    - name: configMap1 # Needs to be pre-created, and should exists in a namespace called <cluster-name>
+    - name: configMap1 # Needs to be pre-created, and should exist in a namespace called <cluster-name>
     - name: configMap2
 
 baseDomain: <cluster_domain>
