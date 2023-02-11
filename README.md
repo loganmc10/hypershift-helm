@@ -29,7 +29,7 @@ spec:
   project: default
   sources:
   - repoURL: 'https://loganmc10.github.io/hypershift-helm'
-    chart: hypershift-helm
+    chart: deploy-cluster
     targetRevision: 0.1.4
     helm:
       valueFiles:

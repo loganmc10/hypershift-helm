@@ -1,5 +1,5 @@
 apiVersion: v2
-name: hypershift-helm
+name: deploy-cluster
 description: A Helm chart for deploying hypershift clusters on Bare Metal
 
 type: application
