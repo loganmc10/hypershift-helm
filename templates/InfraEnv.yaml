@@ -1,0 +1,22 @@
+apiVersion: agent-install.openshift.io/v1beta1
+kind: InfraEnv
+metadata:
+  name: {{ .Values.metadata.name | quote }}
+  namespace: {{ .Values.metadata.name | quote }}
+  annotations:
+    helm.sh/hook-weight: "10"
+spec:
+  sshAuthorizedKey: "{{ .Values.sshKey | trim }}"
+  pullSecretRef:
+    name: assisted-deployment-pull-secret
+  nmStateConfigLabelSelector:
+    matchLabels:
+      nmstate-cluster: {{ .Values.metadata.name | quote }}
+{{- if hasKey .Values.hypershift "additionalNTPSources" }}
+  additionalNTPSources:
+    {{- .Values.hypershift.additionalNTPSources | toYaml | nindent 4 }}
+{{- end }}
+{{- if hasKey .Values "proxy" }}
+  proxy:
+    {{- .Values.proxy | toYaml | nindent 4 }}
+{{- end }}

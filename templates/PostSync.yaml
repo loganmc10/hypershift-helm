@@ -1,0 +1,232 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-setup
+  namespace: {{ .Values.metadata.name | quote }}
+data:
+  wait_node.sh: |
+    set -e
+
+    export KUBECONFIG=/secrets/kubeconfig
+    node_count=0
+    until [ "${node_count}" -gt 0 ]
+    do
+      sleep 60
+      node_count=$(oc get node --no-headers | wc -l)
+    done
+  nodepool_scale.sh: |
+    set -e
+
+    agent_count=-1
+    bmh_count=$(oc get bmh -n "${NAMESPACE}" --no-headers | wc -l)
+    until [ "${bmh_count}" -eq "${agent_count}" ]
+    do
+      sleep 60
+      agent_count=$(oc get agent -n "${NAMESPACE}" --no-headers | wc -l)
+    done
+    oc wait --timeout=1h --for=condition=requirementsmet -n "${NAMESPACE}" agent --all
+    oc -n "${NAMESPACE}" scale nodepool "${NAMESPACE}" --replicas ${node_count}
+  ingress_setup.sh: |
+    set -e
+
+    export KUBECONFIG=/secrets/kubeconfig
+    cat << EOF | oc apply -f -
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: metallb-system
+    EOF
+
+    cat << EOF | oc apply -f -
+    apiVersion: operators.coreos.com/v1
+    kind: OperatorGroup
+    metadata:
+      name: metallb-operator
+      namespace: metallb-system
+    EOF
+
+    cat << EOF | oc apply -f -
+    apiVersion: operators.coreos.com/v1alpha1
+    kind: Subscription
+    metadata:
+      name: metallb-operator-sub
+      namespace: metallb-system
+    spec:
+      channel: stable
+      name: metallb-operator
+      source: redhat-operators 
+      sourceNamespace: openshift-marketplace
+    EOF
+
+    sleep 10
+    oc wait --timeout=10m --for=jsonpath='{.status.state}'=AtLatestKnown -n metallb-system sub/metallb-operator-sub
+    csv=$(oc get -n metallb-system sub/metallb-operator-sub -o jsonpath='{.status.installedCSV}')
+    oc wait --timeout=10m --for=jsonpath='{.status.phase}'=Succeeded -n metallb-system csv/$csv
+
+    cat << EOF | oc apply -f -
+    apiVersion: metallb.io/v1beta1
+    kind: MetalLB
+    metadata:
+      name: metallb
+      namespace: metallb-system
+    EOF
+
+    oc wait --timeout=10m --for=condition=available -n metallb-system metallb/metallb
+
+    cat << EOF | oc apply -f -
+    apiVersion: metallb.io/v1beta1
+    kind: IPAddressPool
+    metadata:
+      name: ingress-address-pool
+      namespace: metallb-system
+    spec:
+      addresses:
+{{- range .Values.platform.baremetal.ingressVIPs | default (list .Values.platform.baremetal.ingressVIP) }}
+        - {{ . }}/{{ contains ":" . | ternary "128" "32" }}
+{{- end }}
+      autoAssign: false
+    EOF
+
+    cat << EOF | oc apply -f -
+    apiVersion: metallb.io/v1beta1
+    kind: L2Advertisement
+    metadata:
+      name: ingress-adv
+      namespace: metallb-system
+    spec:
+      ipAddressPools:
+        - ingress-address-pool
+    EOF
+
+    cat << EOF | oc apply -f -
+    kind: Service
+    apiVersion: v1
+    metadata:
+      annotations:
+        metallb.universe.tf/address-pool: ingress-address-pool
+      name: metallb-ingress
+      namespace: openshift-ingress
+    spec:
+      ports:
+        - name: http
+          protocol: TCP
+          port: 80
+          targetPort: 80
+        - name: https
+          protocol: TCP
+          port: 443
+          targetPort: 443
+      selector:
+        ingresscontroller.operator.openshift.io/deployment-ingresscontroller: default
+      type: LoadBalancer
+    EOF
+---
+{{- $worker_count := 0 }}
+{{- range .Values.compute }}
+  {{- if eq .name "worker" }}
+{{- $worker_count = add $worker_count .replicas }}
+  {{- end}}
+{{- end}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: scale-nodepool
+  namespace: {{ .Values.metadata.name | quote }}
+  annotations:
+    helm.sh/hook: post-install
+    helm.sh/hook-weight: "5"
+spec:
+  template:
+    spec:
+      serviceAccountName: hypershift-installer
+      containers:
+        - name: ose-client
+          image: registry.redhat.io/openshift4/ose-cli:latest
+          command:
+            - bash
+          args:
+            - /script/nodepool_scale.sh
+          env:
+            - name: node_count
+              value: {{ $worker_count | quote }}
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          volumeMounts:
+            - name: cluster-setup
+              mountPath: "/script"
+              readOnly: true
+      restartPolicy: OnFailure
+      volumes:
+        - name: cluster-setup
+          configMap:
+            name: cluster-setup
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: wait-node
+  namespace: {{ .Values.metadata.name | quote }}
+  annotations:
+    helm.sh/hook: post-install
+    helm.sh/hook-weight: "10"
+spec:
+  template:
+    spec:
+      containers:
+        - name: ose-client
+          image: registry.redhat.io/openshift4/ose-cli:latest
+          command:
+            - bash
+          args:
+            - /script/wait_node.sh
+          volumeMounts:
+            - name: kubeconfig
+              mountPath: "/secrets"
+              readOnly: true
+            - name: cluster-setup
+              mountPath: "/script"
+              readOnly: true
+      restartPolicy: OnFailure
+      volumes:
+        - name: kubeconfig
+          secret:
+            secretName: hyper-admin-kubeconfig
+        - name: cluster-setup
+          configMap:
+            name: cluster-setup
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ingress-setup
+  namespace: {{ .Values.metadata.name | quote }}
+  annotations:
+    helm.sh/hook: post-install
+    helm.sh/hook-weight: "15"
+spec:
+  template:
+    spec:
+      containers:
+        - name: ose-client
+          image: registry.redhat.io/openshift4/ose-cli:latest
+          command:
+            - bash
+          args:
+            - /script/ingress_setup.sh
+          volumeMounts:
+            - name: kubeconfig
+              mountPath: "/secrets"
+              readOnly: true
+            - name: cluster-setup
+              mountPath: "/script"
+              readOnly: true
+      restartPolicy: OnFailure
+      volumes:
+        - name: kubeconfig
+          secret:
+            secretName: hyper-admin-kubeconfig
+        - name: cluster-setup
+          configMap:
+            name: cluster-setup

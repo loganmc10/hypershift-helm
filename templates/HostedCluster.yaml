@@ -1,0 +1,78 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: "{{ .Values.metadata.name }}-sshkey"
+  namespace: {{ .Values.metadata.name | quote }}
+data:
+  id_rsa.pub: {{ .Values.sshKey | b64enc | quote }}
+type: Opaque
+---
+{{- if hasKey .Values "additionalTrustBundle" }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trusted-ca
+  namespace: {{ .Values.metadata.name | quote }}
+data:
+  ca-bundle.crt: |
+    {{- .Values.additionalTrustBundle |  nindent 4 }}
+---
+{{- end }}
+apiVersion: hypershift.openshift.io/v1beta1
+kind: HostedCluster
+metadata:
+  name: {{ .Values.metadata.name | quote }}
+  namespace: {{ .Values.metadata.name | quote }}
+  annotations:
+    helm.sh/hook-weight: "20"
+spec:
+  release:
+    image: {{ .Values.hypershift.clusterImageSet | quote }}
+  platform:
+    type: "Agent"
+    agent:
+      agentNamespace: {{ .Values.metadata.name | quote }}
+  dns:
+    baseDomain: {{ .Values.baseDomain | quote }}
+  networking:
+    {{- .Values.networking | toYaml | nindent 4 }}
+  pullSecret:
+    name: assisted-deployment-pull-secret
+  sshKey:
+    name: "{{ .Values.metadata.name }}-sshkey"
+{{- if hasKey .Values "fips" }}
+  fips: {{ .Values.fips }}
+{{- end }}
+{{- if hasKey .Values "imageContentSources" }}
+  imageContentSources:
+    {{- .Values.imageContentSources | toYaml | nindent 4 }}
+{{- end }}
+{{- if hasKey .Values "additionalTrustBundle" }}
+  additionalTrustBundle:
+    name: trusted-ca
+{{- end }}
+{{- if hasKey .Values.hypershift "configuration" }}
+  configuration:
+    {{- .Values.hypershift.configuration | toYaml | nindent 4 }}
+{{- end }}
+  services:
+    - service: APIServer
+      servicePublishingStrategy:
+        type: LoadBalancer
+        loadBalancer:
+          hostname: "api.{{ .Values.metadata.name }}.{{ .Values.baseDomain }}"
+    - service: OAuthServer
+      servicePublishingStrategy:
+        type: Route
+    - service: OIDC
+      servicePublishingStrategy:
+        type: Route
+    - service: Konnectivity
+      servicePublishingStrategy:
+        type: Route
+    - service: Ignition
+      servicePublishingStrategy:
+        type: Route
+    - service: OVNSbDb
+      servicePublishingStrategy:
+        type: Route

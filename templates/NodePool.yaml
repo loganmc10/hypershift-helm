@@ -1,0 +1,19 @@
+apiVersion: hypershift.openshift.io/v1beta1
+kind: NodePool
+metadata:
+  name: {{ .Values.metadata.name | quote }}
+  namespace: {{ .Values.metadata.name | quote }}
+  annotations:
+    helm.sh/hook-weight: "30"
+spec:
+  clusterName: {{ .Values.metadata.name | quote }}
+  release:
+    image: {{ .Values.hypershift.clusterImageSet | quote }}
+  management:
+    upgradeType: InPlace
+  platform:
+    type: "Agent"
+    agent:
+      agentLabelSelector:
+        matchLabels:
+          infraenvs.agent-install.openshift.io: {{ .Values.metadata.name | quote }}

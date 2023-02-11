@@ -1,0 +1,23 @@
+{{- $namespace := .Values.metadata.name }}
+{{- range .Values.platform.baremetal.hosts }}
+apiVersion: agent-install.openshift.io/v1beta1
+kind: NMStateConfig
+metadata:
+  name: {{ .name | quote }}
+  namespace: {{ $namespace | quote }}
+  annotations:
+    helm.sh/hook-weight: "5"
+  labels:
+    nmstate-cluster: {{ $namespace | quote }}
+spec:
+  config:
+    {{- .networkConfig | toYaml | nindent 4 }}
+  interfaces:
+  {{- range .networkConfig.interfaces }}
+    {{- if eq .type "ethernet" }}
+    - name: {{ .name | quote }}
+      macAddress: {{ .macAddress | quote }}
+    {{- end }}
+  {{- end }}
+---
+{{- end }}

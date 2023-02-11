@@ -1,0 +1,45 @@
+{{- $namespace := .Values.metadata.name }}
+{{- range .Values.platform.baremetal.hosts }}
+apiVersion: v1
+kind: Secret
+data:
+  password: {{ .bmc.password | b64enc | quote }}
+  username: {{ .bmc.username | b64enc | quote }}
+metadata:
+  name: "{{ .name }}-bmc-secret"
+  namespace: {{ $namespace | quote }}
+type: Opaque
+---
+apiVersion: metal3.io/v1alpha1
+kind: BareMetalHost
+metadata:
+  name: {{ .name | quote }}
+  namespace: {{ $namespace | quote }}
+  annotations:
+    bmac.agent-install.openshift.io/role: {{ .role | quote }}
+    bmac.agent-install.openshift.io/hostname: {{ .name | quote }}
+    helm.sh/hook-weight: "15"
+  labels:
+    infraenvs.agent-install.openshift.io: {{ $namespace | quote }}
+spec:
+  bootMode: {{ .bootMode | default "UEFI" | quote }}
+  bmc:
+    address: {{ .bmc.address | quote }}
+    disableCertificateVerification: true
+    credentialsName: "{{ .name }}-bmc-secret"
+  bootMACAddress: {{ .bootMACAddress | quote }}
+  online: true
+  {{- if hasKey . "rootDeviceHints" }}
+  rootDeviceHints:
+    {{- .rootDeviceHints | toYaml | nindent 4 }}
+  {{- end }}
+  {{- if hasKey . "raid" }}
+  raid:
+    {{- .raid | toYaml | nindent 4 }}
+  {{- end }}
+  {{- if hasKey . "firmware" }}
+  firmware:
+    {{- .firmware | toYaml | nindent 4 }}
+  {{- end }}
+---
+{{- end }}
