@@ -16,5 +16,5 @@ jobs:
 
       - name: Check code
         run: |
-          helm lint --strict . --values install-config-example.yaml
-          helm template . --values install-config-example.yaml
+          helm lint --strict chart --values install-config-example.yaml
+          helm template chart --values install-config-example.yaml
