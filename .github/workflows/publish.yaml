@@ -1,0 +1,20 @@
+name: Publish project
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  test-code:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check code
+        env:
+          QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          helm lint --strict . --values install-config-example.yaml
+          helm registry login quay.io --username loganmc10 --password "${QUAY_PASSWORD}"
+          helm package .
+          helm push *.tgz oci://quay.io/loganmc10
