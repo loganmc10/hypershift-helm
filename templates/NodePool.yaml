@@ -17,3 +17,7 @@ spec:
       agentLabelSelector:
         matchLabels:
           infraenvs.agent-install.openshift.io: {{ .Values.metadata.name | quote }}
+{{- if hasKey .Values.hypershift "nodePoolConfigRefs" }}
+  config:
+    {{- .Values.hypershift.nodePoolConfigRefs | toYaml | nindent 4 }}
+{{- end }}
