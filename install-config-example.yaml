@@ -1,16 +1,18 @@
 apiVersion: v1
 
+# Additional parameters for hypershift-helm
 hypershift:
-  clusterImageSet: quay.io/openshift-release-dev/ocp-release:4.12.2-x86_64
-  additionalNTPSources:
+  clusterImageSet: quay.io/openshift-release-dev/ocp-release:4.12.0-x86_64 # Required
+  additionalNTPSources: # Optional
     - pool.ntp.org
+  configuration: # Optional, see https://hypershift-docs.netlify.app/how-to/cluster-configuration/
 
-baseDomain: example.com
+baseDomain: <cluster_domain>
 compute:
   - name: worker
     replicas: 2
 metadata:
-  name: hyper
+  name: cluster-name
 networking:
   clusterNetwork:
     - cidr: 10.128.0.0/14
@@ -20,23 +22,23 @@ networking:
     - cidr: 172.30.0.0/16
 platform:
   baremetal:
-    apiVIP: 10.0.0.248
-    ingressVIP: 10.0.0.249
+    apiVIP: <api_address> # Should be in the same subnet as the provisioning cluster
+    ingressVIP: <ingress_address> # Should be in the same subnet as the edge cluster worker nodes
     hosts:
       - name: openshift-worker-0
         role: worker
         bmc:
-          address: "redfish-virtualmedia://10.0.0.3/redfish/v1/Systems/1"
+          address: "redfish-virtualmedia://<bmc_ip_address>/redfish/v1/Systems/1"
           username: <username>
           password: <password>
-        bootMACAddress: aa:aa:aa:aa:aa:aa
+        bootMACAddress: <nic1_mac_address>
         rootDeviceHints:
           hctl: "1:0:0:0"
         networkConfig:
           interfaces:
-            - name: eno2
+            - name: eno1
               type: ethernet
-              macAddress: aa:aa:aa:aa:aa:aa
+              macAddress: <nic1_mac_address>
               state: up
               ipv4:
                 enabled: true
@@ -46,23 +48,23 @@ platform:
       - name: openshift-worker-1
         role: worker
         bmc:
-          address: "redfish-virtualmedia://10.0.0.4/redfish/v1/Systems/1"
+          address: "redfish-virtualmedia://<bmc_ip_address>/redfish/v1/Systems/1"
           username: <username>
           password: <password>
-        bootMACAddress: bb:bb:bb:bb:bb:bb
+        bootMACAddress: <nic1_mac_address>
         rootDeviceHints:
           hctl: "2:0:0:0"
         networkConfig:
           interfaces:
-            - name: eno2
+            - name: eno1
               type: ethernet
-              macAddress: bb:bb:bb:bb:bb:bb
+              macAddress: <nic1_mac_address>
               state: up
               ipv4:
                 enabled: true
                 dhcp: true
               ipv6:
                 enabled: false
-pullSecret: "<pull_secret>"
+pullSecret: "<pull secret>"
 sshKey: |
   ssh-rsa ...
