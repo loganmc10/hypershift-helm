@@ -26,7 +26,7 @@ spec:
     server: https://kubernetes.default.svc
   project: default
   sources:
-  - repoURL: 'quay.io/loganmc10'
+  - repoURL: 'https://loganmc10.github.io/hypershift-helm'
     chart: hypershift-helm
     targetRevision: 0.1.4
     helm:
