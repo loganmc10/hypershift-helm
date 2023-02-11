@@ -13,6 +13,8 @@ You need to create DNS entries for api.\<hosted-cluster-name>.\<domain> and *.ap
 This Helm chart utilizes MetalLB (layer 2) on the **management** cluster in order to serve the API for the hosted cluster. This means that the IP address you choose for the Hosted Cluster API needs to be in the same subnet as the management cluster.
 ## Ingress
 This Helm chart utilizes MetalLB (layer 2) on the **hosted** cluster for the Ingress. This means that the IP address you choose for the Hosted Cluster Ingress needs to be in the same subnet as the hosted cluster workers.
+# Configuration
+The Values file for the Helm chart is an OpenShift [Install Config](https://docs.openshift.com/container-platform/latest/installing/installing_bare_metal_ipi/ipi-install-installation-workflow.html#additional-resources_config) with an extra `hypershift` section. See [the example](install-config-example.yaml). Hosted Control Plane (Hypershift) clusters do not have any control plane nodes, therefore only worker nodes should be specified in the Install Config.
 # Example
 Example ArgoCD application:
 ```
