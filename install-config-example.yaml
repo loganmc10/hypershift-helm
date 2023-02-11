@@ -1,0 +1,68 @@
+apiVersion: v1
+
+hypershift:
+  clusterImageSet: quay.io/openshift-release-dev/ocp-release:4.12.2-x86_64
+  additionalNTPSources:
+    - pool.ntp.org
+
+baseDomain: example.com
+compute:
+  - name: worker
+    replicas: 2
+metadata:
+  name: hyper
+networking:
+  clusterNetwork:
+    - cidr: 10.128.0.0/14
+      hostPrefix: 23
+  networkType: OVNKubernetes
+  serviceNetwork:
+    - cidr: 172.30.0.0/16
+platform:
+  baremetal:
+    apiVIP: 10.0.0.248
+    ingressVIP: 10.0.0.249
+    hosts:
+      - name: openshift-worker-0
+        role: worker
+        bmc:
+          address: "redfish-virtualmedia://10.0.0.3/redfish/v1/Systems/1"
+          username: <username>
+          password: <password>
+        bootMACAddress: aa:aa:aa:aa:aa:aa
+        rootDeviceHints:
+          hctl: "1:0:0:0"
+        networkConfig:
+          interfaces:
+            - name: eno2
+              type: ethernet
+              macAddress: aa:aa:aa:aa:aa:aa
+              state: up
+              ipv4:
+                enabled: true
+                dhcp: true
+              ipv6:
+                enabled: false
+      - name: openshift-worker-1
+        role: worker
+        bmc:
+          address: "redfish-virtualmedia://10.0.0.4/redfish/v1/Systems/1"
+          username: <username>
+          password: <password>
+        bootMACAddress: bb:bb:bb:bb:bb:bb
+        rootDeviceHints:
+          hctl: "2:0:0:0"
+        networkConfig:
+          interfaces:
+            - name: eno2
+              type: ethernet
+              macAddress: bb:bb:bb:bb:bb:bb
+              state: up
+              ipv4:
+                enabled: true
+                dhcp: true
+              ipv6:
+                enabled: false
+pullSecret: "<pull_secret>"
+sshKey: |
+  ssh-rsa ...

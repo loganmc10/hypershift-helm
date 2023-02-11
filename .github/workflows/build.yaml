@@ -1,0 +1,16 @@
+name: Build project
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test-code:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check code
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          helm lint --strict . --values install-config-example.yaml
