@@ -1,19 +1,32 @@
-name: Publish project
+name: Release Charts
+
 on:
   release:
     types: [published]
   workflow_dispatch:
 
 jobs:
-  publish-chart:
+  release:
+    # depending on default permission settings for your org (contents being read-only or read-write for workloads), you will have to add permissions
+    # see: https://docs.github.com/en/actions/security-guides/automatic-token-authentication#modifying-the-permissions-for-the-github_token
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Publish chart
-        env:
-          QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
         run: |
-          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-          helm registry login quay.io --username loganmc10 --password "${QUAY_PASSWORD}"
-          helm package .
-          helm push *.tgz oci://quay.io/loganmc10
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.5.0
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
