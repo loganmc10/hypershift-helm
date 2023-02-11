@@ -1,5 +1,6 @@
 # Prerequisites
 * OpenShift GitOps Operator v1.8+
+* MetalLB Operator
 * ACM 2.7+ or MCE 2.2+
 * Enable the Hosted Control Plane feature: [RHACM Docs - Enable Hypershift Add-On](https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.7/html-single/clusters/index#hypershift-addon-intro)
 * Enable CIM: [RHACM Docs - Enable CIM](https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.7/html-single/clusters/index#enable-cim)
