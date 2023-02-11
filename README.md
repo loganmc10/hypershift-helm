@@ -22,8 +22,11 @@ metadata:
   name: hypershift-cluster
   namespace: openshift-gitops
 spec:
+  destination:
+    server: https://kubernetes.default.svc
+  project: default
   sources:
-  - repoURL: 'oci://quay.io/loganmc10'
+  - repoURL: 'quay.io/loganmc10'
     chart: hypershift-helm
     targetRevision: 0.1.4
     helm:
