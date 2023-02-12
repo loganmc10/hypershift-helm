@@ -29,7 +29,7 @@ metadata:
   name: hypershift-installer-role
   namespace: "{{ .Values.metadata.name }}-{{ .Values.metadata.name }}"
   annotations:
-    helm.sh/hook-weight: "21"
+    helm.sh/hook-weight: "25"
 rules:
   - apiGroups: [""]
     resources:
@@ -57,7 +57,7 @@ metadata:
   name: hypershift-installer-binding
   namespace: "{{ .Values.metadata.name }}-{{ .Values.metadata.name }}"
   annotations:
-    helm.sh/hook-weight: "21"
+    helm.sh/hook-weight: "25"
 subjects:
   - kind: ServiceAccount
     name: hypershift-installer

@@ -4,7 +4,7 @@ metadata:
   name: patch-api-svc
   namespace: {{ .Values.metadata.name | quote }}
   annotations:
-    helm.sh/hook-weight: "25"
+    helm.sh/hook-weight: "30"
 spec:
   template:
     spec:

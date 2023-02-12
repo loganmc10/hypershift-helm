@@ -134,8 +134,7 @@ metadata:
   name: scale-nodepool
   namespace: {{ .Values.metadata.name | quote }}
   annotations:
-    helm.sh/hook: post-install
-    helm.sh/hook-weight: "5"
+    helm.sh/hook-weight: "40"
 spec:
   template:
     spec:
@@ -170,8 +169,7 @@ metadata:
   name: wait-node
   namespace: {{ .Values.metadata.name | quote }}
   annotations:
-    helm.sh/hook: post-install
-    helm.sh/hook-weight: "10"
+    helm.sh/hook-weight: "45"
 spec:
   template:
     spec:
@@ -204,8 +202,7 @@ metadata:
   name: ingress-setup
   namespace: {{ .Values.metadata.name | quote }}
   annotations:
-    helm.sh/hook: post-install
-    helm.sh/hook-weight: "15"
+    helm.sh/hook-weight: "50"
 spec:
   template:
     spec:
