@@ -14,6 +14,7 @@ data:
       sleep 60
       node_count=$(oc get node --no-headers | wc -l)
     done
+    oc wait --timeout=30m --for=condition=ready node --all
   nodepool_scale.sh: |
     set -e
 
