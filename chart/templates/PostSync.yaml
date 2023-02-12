@@ -131,7 +131,7 @@ data:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: scale-nodepool
+  name: ingress-setup
   namespace: {{ .Values.metadata.name | quote }}
   annotations:
     helm.sh/hook-weight: "40"
@@ -139,8 +139,8 @@ spec:
   template:
     spec:
       serviceAccountName: hypershift-installer
-      containers:
-        - name: ose-client
+      initContainers:
+        - name: scale-nodepool
           image: registry.redhat.io/openshift4/ose-cli:latest
           command:
             - bash
@@ -157,24 +157,7 @@ spec:
             - name: cluster-setup
               mountPath: "/script"
               readOnly: true
-      restartPolicy: OnFailure
-      volumes:
-        - name: cluster-setup
-          configMap:
-            name: cluster-setup
----
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: wait-node
-  namespace: {{ .Values.metadata.name | quote }}
-  annotations:
-    helm.sh/hook-weight: "45"
-spec:
-  template:
-    spec:
-      containers:
-        - name: ose-client
+        - name: wait-node
           image: registry.redhat.io/openshift4/ose-cli:latest
           command:
             - bash
@@ -187,27 +170,8 @@ spec:
             - name: cluster-setup
               mountPath: "/script"
               readOnly: true
-      restartPolicy: OnFailure
-      volumes:
-        - name: kubeconfig
-          secret:
-            secretName: hyper-admin-kubeconfig
-        - name: cluster-setup
-          configMap:
-            name: cluster-setup
----
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: ingress-setup
-  namespace: {{ .Values.metadata.name | quote }}
-  annotations:
-    helm.sh/hook-weight: "50"
-spec:
-  template:
-    spec:
       containers:
-        - name: ose-client
+        - name: configure-ingress
           image: registry.redhat.io/openshift4/ose-cli:latest
           command:
             - bash
