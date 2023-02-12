@@ -131,7 +131,7 @@ data:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: ingress-setup
+  name: worker-setup
   namespace: {{ .Values.metadata.name | quote }}
   annotations:
     helm.sh/hook-weight: "40"
