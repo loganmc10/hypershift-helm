@@ -184,7 +184,7 @@ spec:
       volumes:
         - name: kubeconfig
           secret:
-            secretName: hyper-admin-kubeconfig
+            secretName: "{{ .Values.metadata.name }}-admin-kubeconfig"
         - name: cluster-setup
           configMap:
             name: cluster-setup
