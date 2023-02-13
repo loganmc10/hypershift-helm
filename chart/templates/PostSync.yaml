@@ -15,7 +15,7 @@ data:
       agent_count=$(oc get agent -n "${NAMESPACE}" --no-headers | wc -l)
     done
     oc wait --timeout=1h --for=condition=requirementsmet -n "${NAMESPACE}" agent --all
-    oc -n "${NAMESPACE}" scale nodepool "${NAMESPACE}" --replicas ${node_count}
+    oc -n "${NAMESPACE}" scale nodepool "${NAMESPACE}" --replicas ${bmh_count}
   wait_node.sh: |
     set -e
 
@@ -120,12 +120,6 @@ data:
       type: LoadBalancer
     EOF
 ---
-{{- $worker_count := 0 }}
-{{- range .Values.compute }}
-  {{- if eq .name "worker" }}
-{{- $worker_count = add $worker_count .replicas }}
-  {{- end}}
-{{- end}}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -145,8 +139,6 @@ spec:
           args:
             - /script/nodepool_scale.sh
           env:
-            - name: node_count
-              value: {{ $worker_count | quote }}
             - name: NAMESPACE
               valueFrom:
                 fieldRef:
