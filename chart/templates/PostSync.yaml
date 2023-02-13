@@ -126,8 +126,10 @@ metadata:
   name: worker-setup
   namespace: {{ .Values.metadata.name | quote }}
   annotations:
-    helm.sh/hook-weight: "40"
+    helm.sh/hook: post-install
+    helm.sh/hook-weight: "10"
 spec:
+  ttlSecondsAfterFinished: 600
   template:
     spec:
       serviceAccountName: hypershift-installer

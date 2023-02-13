@@ -4,7 +4,7 @@ metadata:
   name: {{ .Values.metadata.name | quote }}
   namespace: {{ .Values.metadata.name | quote }}
   annotations:
-    helm.sh/hook-weight: "35"
+    helm.sh/hook-weight: "25"
 spec:
   clusterName: {{ .Values.metadata.name | quote }}
   release:

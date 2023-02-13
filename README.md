@@ -30,7 +30,7 @@ spec:
   sources:
   - repoURL: 'https://loganmc10.github.io/hypershift-helm'
     chart: deploy-cluster
-    targetRevision: 0.1.7
+    targetRevision: 0.1.10
     helm:
       valueFiles:
       - $values/install-config.yaml
