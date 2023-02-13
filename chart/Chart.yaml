@@ -4,4 +4,4 @@ description: A Helm chart for deploying HyperShift clusters on bare metal
 
 type: application
 
-version: 0.1.11
+version: 0.1.12

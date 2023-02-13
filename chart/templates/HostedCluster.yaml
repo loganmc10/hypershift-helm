@@ -35,7 +35,13 @@ spec:
   dns:
     baseDomain: {{ .Values.baseDomain | quote }}
   networking:
-    {{- .Values.networking | toYaml | nindent 4 }}
+    {{- omit .Values.networking "serviceNetwork" | toYaml | nindent 4 }}
+{{- if hasKey .Values.networking "serviceNetwork" }}
+    serviceNetwork:
+  {{- range .Values.networking.serviceNetwork }}
+      - cidr: {{ . | quote }}
+  {{- end }}
+{{- end }}
   pullSecret:
     name: assisted-deployment-pull-secret
   sshKey:
