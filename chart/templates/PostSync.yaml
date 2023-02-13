@@ -4,17 +4,6 @@ metadata:
   name: cluster-setup
   namespace: {{ .Values.metadata.name | quote }}
 data:
-  wait_node.sh: |
-    set -e
-
-    export KUBECONFIG=/secrets/kubeconfig
-    node_count=0
-    until [ "${node_count}" -gt 0 ]
-    do
-      sleep 60
-      node_count=$(oc get node --no-headers | wc -l)
-    done
-    oc wait --timeout=30m --for=condition=ready node --all
   nodepool_scale.sh: |
     set -e
 
@@ -27,10 +16,19 @@ data:
     done
     oc wait --timeout=1h --for=condition=requirementsmet -n "${NAMESPACE}" agent --all
     oc -n "${NAMESPACE}" scale nodepool "${NAMESPACE}" --replicas ${node_count}
+  wait_node.sh: |
+    set -e
+
+    node_count=0
+    until [ "${node_count}" -gt 0 ]
+    do
+      sleep 60
+      node_count=$(oc get node --no-headers | wc -l)
+    done
+    oc wait --timeout=30m --for=condition=ready node --all
   ingress_setup.sh: |
     set -e
 
-    export KUBECONFIG=/secrets/kubeconfig
     cat << EOF | oc apply -f -
     apiVersion: v1
     kind: Namespace
@@ -163,6 +161,9 @@ spec:
             - bash
           args:
             - /script/wait_node.sh
+          env:
+            - name: KUBECONFIG
+              value: "/secrets/kubeconfig"
           volumeMounts:
             - name: kubeconfig
               mountPath: "/secrets"
@@ -177,6 +178,9 @@ spec:
             - bash
           args:
             - /script/ingress_setup.sh
+          env:
+            - name: KUBECONFIG
+              value: "/secrets/kubeconfig"
           volumeMounts:
             - name: kubeconfig
               mountPath: "/secrets"
