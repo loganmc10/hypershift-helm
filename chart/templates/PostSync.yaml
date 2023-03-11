@@ -15,7 +15,9 @@ data:
       agent_count=$(oc get agent -n "${NAMESPACE}" --no-headers | wc -l)
     done
     oc wait --timeout=1h --for=condition=requirementsmet -n "${NAMESPACE}" agent --all
-    oc -n "${NAMESPACE}" scale nodepool "${NAMESPACE}" --replicas ${bmh_count}
+{{- range .Values.compute }}
+    oc -n "${NAMESPACE}" scale nodepool "{{ .name }}" --replicas {{ .replicas }}
+{{- end}}
   wait_node.sh: |
     set -e
 

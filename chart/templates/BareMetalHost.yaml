@@ -16,11 +16,11 @@ metadata:
   name: {{ .name | quote }}
   namespace: {{ $namespace | quote }}
   annotations:
-    bmac.agent-install.openshift.io/role: {{ .role | quote }}
+    bmac.agent-install.openshift.io/role: worker
     bmac.agent-install.openshift.io/hostname: {{ .name | quote }}
     helm.sh/hook-weight: "15"
   labels:
-    infraenvs.agent-install.openshift.io: {{ $namespace | quote }}
+    infraenvs.agent-install.openshift.io: {{ .role | quote }}
 spec:
   bootMode: {{ .bootMode | default "UEFI" | quote }}
   bmc:
