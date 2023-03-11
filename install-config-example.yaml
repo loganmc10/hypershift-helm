@@ -11,6 +11,7 @@ hypershift:
       configRefs: # Optional, see https://hypershift-docs.netlify.app/reference/api/#hypershift.openshift.io/v1beta1.NodePoolSpec
         - name: configMap1 # Needs to be pre-created, and should exist in a namespace called <cluster-name>
         - name: configMap2
+      imageSet: quay.io/openshift-release-dev/ocp-release:4.11.0-x86_64 # Optional, will default to the value of clusterImageSet
       reservedCpuSet: <reserved_set> # Optional, example: "0-1,32-33"  there should be no spaces. See https://docs.openshift.com/container-platform/latest/scalability_and_performance/sno-du-enabling-workload-partitioning-on-single-node-openshift.html
 baseDomain: <cluster_domain>
 compute:

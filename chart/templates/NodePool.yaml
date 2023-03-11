@@ -19,7 +19,7 @@ metadata:
 spec:
   clusterName: {{ $namespace | quote }}
   release:
-    image: {{ $imageset | quote }}
+    image: {{ $poolconfig.imageSet | default $imageset | quote }}
   management:
     upgradeType: InPlace
   platform:
