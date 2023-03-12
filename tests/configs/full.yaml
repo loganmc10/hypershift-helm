@@ -38,8 +38,10 @@ proxy:
   noProxy: 10.100.100.0/24
 platform:
   baremetal:
-    apiVIP: 192.168.2.2
-    ingressVIP: 192.168.3.3
+    apiVIPs:
+      - 192.168.2.2
+    ingressVIPs:
+      - 192.168.3.3
     hosts:
       - name: openshift-worker-0
         role: worker
