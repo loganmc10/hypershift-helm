@@ -430,6 +430,10 @@ spec:
       nmstate-cluster: "test-cluster"
   additionalNTPSources:
     - pool.ntp.org
+  proxy:
+    httpProxy: http://example.com:3128
+    httpsProxy: http://example.com:3128
+    noProxy: 10.100.100.0/24
 ---
 # Source: deploy-cluster/templates/MetalLB.yaml
 apiVersion: metallb.io/v1beta1

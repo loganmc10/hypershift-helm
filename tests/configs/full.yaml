@@ -32,6 +32,10 @@ networking:
   networkType: OVNKubernetes
   serviceNetwork:
     - 172.30.0.0/16
+proxy:
+  httpProxy: http://example.com:3128
+  httpsProxy: http://example.com:3128
+  noProxy: 10.100.100.0/24
 platform:
   baremetal:
     apiVIP: 192.168.2.2
