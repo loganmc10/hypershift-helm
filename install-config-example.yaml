@@ -16,7 +16,7 @@ compute:
   - name: worker
     replicas: 2
 metadata:
-  name: example-cluster-name
+  name: <example_cluster_name>
 networking:
   clusterNetwork:
     - cidr: 10.128.0.0/14
