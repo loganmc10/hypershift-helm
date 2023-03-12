@@ -19,4 +19,4 @@ jobs:
       - name: Check code
         run: |
           helm lint --strict chart --values install-config-example.yaml
-          helm template chart --values install-config-example.yaml
+          ./tests/run_tests.sh

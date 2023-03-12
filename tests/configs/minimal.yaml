@@ -1,0 +1,67 @@
+apiVersion: v1
+
+# Additional parameters for hypershift-helm
+hypershift:
+  clusterImageSet: quay.io/openshift-release-dev/ocp-release:4.12.0-x86_64
+
+baseDomain: test.com
+compute:
+  - name: worker
+    replicas: 2
+metadata:
+  name: test-cluster
+networking:
+  clusterNetwork:
+    - cidr: 10.128.0.0/14
+      hostPrefix: 23
+  networkType: OVNKubernetes
+  serviceNetwork:
+    - 172.30.0.0/16
+platform:
+  baremetal:
+    apiVIP: 192.168.2.2
+    ingressVIP: 192.168.3.3
+    hosts:
+      - name: openshift-worker-0
+        role: worker
+        bmc:
+          address: "redfish-virtualmedia://10.100.100.100/redfish/v1/Systems/1"
+          username: admin
+          password: admin
+        bootMACAddress: aa:aa:aa:aa:aa:aa
+        rootDeviceHints:
+          hctl: "1:0:0:0"
+        networkConfig:
+          interfaces:
+            - name: eno1
+              type: ethernet
+              macAddress: aa:aa:aa:aa:aa:aa
+              state: up
+              ipv4:
+                enabled: true
+                dhcp: true
+              ipv6:
+                enabled: false
+      - name: openshift-worker-1
+        role: worker
+        bmc:
+          address: "redfish-virtualmedia://10.100.100.200/redfish/v1/Systems/1"
+          username: admin
+          password: admin
+        bootMACAddress: bb:bb:bb:bb:bb:bb
+        rootDeviceHints:
+          hctl: "2:0:0:0"
+        networkConfig:
+          interfaces:
+            - name: eno1
+              type: ethernet
+              macAddress: bb:bb:bb:bb:bb:bb
+              state: up
+              ipv4:
+                enabled: true
+                dhcp: true
+              ipv6:
+                enabled: false
+pullSecret: '{"auths":{}}'
+sshKey: |
+  ssh-rsa ...

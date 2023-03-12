@@ -1,0 +1,620 @@
+---
+# Source: deploy-cluster/templates/Namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: "test-cluster"
+---
+# Source: deploy-cluster/templates/RBAC.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: hypershift-installer
+  namespace: "test-cluster"
+---
+# Source: deploy-cluster/templates/BareMetalHost.yaml
+apiVersion: v1
+kind: Secret
+data:
+  password: "YWRtaW4="
+  username: "YWRtaW4="
+metadata:
+  name: "openshift-worker-0-bmc-secret"
+  namespace: "test-cluster"
+type: Opaque
+---
+# Source: deploy-cluster/templates/BareMetalHost.yaml
+apiVersion: v1
+kind: Secret
+data:
+  password: "YWRtaW4="
+  username: "YWRtaW4="
+metadata:
+  name: "openshift-worker-1-bmc-secret"
+  namespace: "test-cluster"
+type: Opaque
+---
+# Source: deploy-cluster/templates/HostedCluster.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: "test-cluster-sshkey"
+  namespace: "test-cluster"
+data:
+  id_rsa.pub: "c3NoLXJzYSAuLi4K"
+type: Opaque
+---
+# Source: deploy-cluster/templates/PullSecret.yaml
+apiVersion: v1
+kind: Secret
+data:
+  .dockerconfigjson: "eyJhdXRocyI6e319"
+metadata:
+  name: assisted-deployment-pull-secret
+  namespace: "test-cluster"
+type: kubernetes.io/dockerconfigjson
+---
+# Source: deploy-cluster/templates/PostSync.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-setup
+  namespace: "test-cluster"
+data:
+  nodepool_scale.sh: |
+    set -e
+
+    agent_count=-1
+    bmh_count=$(oc get bmh -n "${NAMESPACE}" --no-headers | wc -l)
+    until [ "${bmh_count}" -eq "${agent_count}" ]
+    do
+      sleep 60
+      agent_count=$(oc get agent -n "${NAMESPACE}" --no-headers | wc -l)
+    done
+    oc wait --timeout=1h --for=condition=requirementsmet -n "${NAMESPACE}" agent --all
+    oc -n "${NAMESPACE}" scale nodepool "${NAMESPACE}" --replicas ${bmh_count}
+  wait_node.sh: |
+    set -e
+
+    node_count=0
+    until [ "${node_count}" -gt 0 ]
+    do
+      sleep 60
+      node_count=$(oc get node --no-headers | wc -l)
+    done
+    oc wait --timeout=30m --for=condition=ready node --all
+  ingress_setup.sh: |
+    set -e
+
+    cat << EOF | oc apply -f -
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: metallb-system
+    EOF
+
+    cat << EOF | oc apply -f -
+    apiVersion: operators.coreos.com/v1
+    kind: OperatorGroup
+    metadata:
+      name: metallb-operator
+      namespace: metallb-system
+    EOF
+
+    cat << EOF | oc apply -f -
+    apiVersion: operators.coreos.com/v1alpha1
+    kind: Subscription
+    metadata:
+      name: metallb-operator-sub
+      namespace: metallb-system
+    spec:
+      channel: stable
+      name: metallb-operator
+      source: redhat-operators 
+      sourceNamespace: openshift-marketplace
+    EOF
+
+    sleep 10
+    oc wait --timeout=10m --for=jsonpath='{.status.state}'=AtLatestKnown -n metallb-system sub/metallb-operator-sub
+    csv=$(oc get -n metallb-system sub/metallb-operator-sub -o jsonpath='{.status.installedCSV}')
+    oc wait --timeout=10m --for=jsonpath='{.status.phase}'=Succeeded -n metallb-system csv/$csv
+
+    cat << EOF | oc apply -f -
+    apiVersion: metallb.io/v1beta1
+    kind: MetalLB
+    metadata:
+      name: metallb
+      namespace: metallb-system
+    EOF
+
+    oc wait --timeout=10m --for=condition=available -n metallb-system metallb/metallb
+
+    cat << EOF | oc apply -f -
+    apiVersion: metallb.io/v1beta1
+    kind: IPAddressPool
+    metadata:
+      name: ingress-address-pool
+      namespace: metallb-system
+    spec:
+      addresses:
+        - 192.168.3.3/32
+      autoAssign: false
+    EOF
+
+    cat << EOF | oc apply -f -
+    apiVersion: metallb.io/v1beta1
+    kind: L2Advertisement
+    metadata:
+      name: ingress-adv
+      namespace: metallb-system
+    spec:
+      ipAddressPools:
+        - ingress-address-pool
+    EOF
+
+    cat << EOF | oc apply -f -
+    kind: Service
+    apiVersion: v1
+    metadata:
+      annotations:
+        metallb.universe.tf/address-pool: ingress-address-pool
+      name: metallb-ingress
+      namespace: openshift-ingress
+    spec:
+      ports:
+        - name: http
+          protocol: TCP
+          port: 80
+          targetPort: 80
+        - name: https
+          protocol: TCP
+          port: 443
+          targetPort: 443
+      selector:
+        ingresscontroller.operator.openshift.io/deployment-ingresscontroller: default
+      type: LoadBalancer
+    EOF
+---
+# Source: deploy-cluster/templates/WorkloadPartitioning.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "workload-partitioning"
+  namespace: "test-cluster"
+data:
+  config: |
+    apiVersion: machineconfiguration.openshift.io/v1
+    kind: MachineConfig
+    metadata:
+      labels:
+        machineconfiguration.openshift.io/role: "worker"
+      name: 02-workload-partitioning
+    spec:
+      config:
+        ignition:
+          version: 3.2.0
+        storage:
+          files:
+            - contents:
+                source: data:text/plain;charset=utf-8;base64,W2NyaW8ucnVudGltZS53b3JrbG9hZHMubWFuYWdlbWVudF0KYWN0aXZhdGlvbl9hbm5vdGF0aW9uID0gInRhcmdldC53b3JrbG9hZC5vcGVuc2hpZnQuaW8vbWFuYWdlbWVudCIKYW5ub3RhdGlvbl9wcmVmaXggPSAicmVzb3VyY2VzLndvcmtsb2FkLm9wZW5zaGlmdC5pbyIKcmVzb3VyY2VzID0geyAiY3B1c2hhcmVzIiA9IDAsICJjcHVzZXQiID0gIjAtMSwzMi0zMyIgfQo=
+              mode: 420
+              overwrite: true
+              path: /etc/crio/crio.conf.d/01-workload-partitioning
+              user:
+                name: root
+            - contents:
+                source: data:text/plain;charset=utf-8;base64,ewogICJtYW5hZ2VtZW50IjogewogICAgImNwdXNldCI6ICIwLTEsMzItMzMiCiAgfQp9Cg==
+              mode: 420
+              overwrite: true
+              path: /etc/kubernetes/openshift-workload-pinning
+              user:
+                name: root
+---
+# Source: deploy-cluster/templates/CApi.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: capi-provider-role
+  namespace: "test-cluster"
+rules:
+  - apiGroups:
+      - agent-install.openshift.io
+    resources:
+      - agents
+    verbs:
+      - "*"
+---
+# Source: deploy-cluster/templates/RBAC.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: hypershift-installer-role
+  namespace: "test-cluster"
+rules:
+  - apiGroups: ["metal3.io"]
+    resources:
+      - baremetalhosts
+    verbs:
+      - list
+  - apiGroups: ["agent-install.openshift.io"]
+    resources:
+      - agents
+    verbs:
+      - list
+      - watch
+  - apiGroups: ["hypershift.openshift.io"]
+    resources:
+      - nodepools
+      - nodepools/scale
+    verbs:
+      - get
+      - patch
+---
+# Source: deploy-cluster/templates/RBAC.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: hypershift-installer-role
+  namespace: "test-cluster-test-cluster"
+  annotations:
+    helm.sh/hook-weight: "30"
+rules:
+  - apiGroups: [""]
+    resources:
+      - services
+    verbs:
+      - get
+      - patch
+---
+# Source: deploy-cluster/templates/RBAC.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: hypershift-installer-binding
+  namespace: "test-cluster"
+subjects:
+  - kind: ServiceAccount
+    name: hypershift-installer
+roleRef:
+  kind: Role
+  name: hypershift-installer-role
+  apiGroup: rbac.authorization.k8s.io
+---
+# Source: deploy-cluster/templates/RBAC.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: hypershift-installer-binding
+  namespace: "test-cluster-test-cluster"
+  annotations:
+    helm.sh/hook-weight: "30"
+subjects:
+  - kind: ServiceAccount
+    name: hypershift-installer
+    namespace: "test-cluster"
+roleRef:
+  kind: Role
+  name: hypershift-installer-role
+  apiGroup: rbac.authorization.k8s.io
+---
+# Source: deploy-cluster/templates/BareMetalHost.yaml
+apiVersion: metal3.io/v1alpha1
+kind: BareMetalHost
+metadata:
+  name: "openshift-worker-0"
+  namespace: "test-cluster"
+  annotations:
+    bmac.agent-install.openshift.io/role: "worker"
+    bmac.agent-install.openshift.io/hostname: "openshift-worker-0"
+    helm.sh/hook-weight: "15"
+  labels:
+    infraenvs.agent-install.openshift.io: "test-cluster"
+spec:
+  bootMode: "UEFI"
+  bmc:
+    address: "redfish-virtualmedia://10.100.100.100/redfish/v1/Systems/1"
+    disableCertificateVerification: true
+    credentialsName: "openshift-worker-0-bmc-secret"
+  bootMACAddress: "aa:aa:aa:aa:aa:aa"
+  online: true
+  rootDeviceHints:
+    hctl: "1:0:0:0"
+---
+# Source: deploy-cluster/templates/BareMetalHost.yaml
+apiVersion: metal3.io/v1alpha1
+kind: BareMetalHost
+metadata:
+  name: "openshift-worker-1"
+  namespace: "test-cluster"
+  annotations:
+    bmac.agent-install.openshift.io/role: "worker"
+    bmac.agent-install.openshift.io/hostname: "openshift-worker-1"
+    helm.sh/hook-weight: "15"
+  labels:
+    infraenvs.agent-install.openshift.io: "test-cluster"
+spec:
+  bootMode: "UEFI"
+  bmc:
+    address: "redfish-virtualmedia://10.100.100.200/redfish/v1/Systems/1"
+    disableCertificateVerification: true
+    credentialsName: "openshift-worker-1-bmc-secret"
+  bootMACAddress: "bb:bb:bb:bb:bb:bb"
+  online: true
+  rootDeviceHints:
+    hctl: "2:0:0:0"
+---
+# Source: deploy-cluster/templates/HostedCluster.yaml
+apiVersion: hypershift.openshift.io/v1beta1
+kind: HostedCluster
+metadata:
+  name: "test-cluster"
+  namespace: "test-cluster"
+  annotations:
+    helm.sh/hook-weight: "20"
+spec:
+  release:
+    image: "quay.io/openshift-release-dev/ocp-release:4.12.0-x86_64"
+  platform:
+    type: "Agent"
+    agent:
+      agentNamespace: "test-cluster"
+  dns:
+    baseDomain: "test.com"
+  networking:
+    clusterNetwork:
+    - cidr: 10.128.0.0/14
+      hostPrefix: 23
+    networkType: OVNKubernetes
+    serviceNetwork:
+      - cidr: "172.30.0.0/16"
+  pullSecret:
+    name: assisted-deployment-pull-secret
+  sshKey:
+    name: "test-cluster-sshkey"
+  configuration:
+    apiServer:
+      servingCerts:
+        namedCertificates:
+        - names:
+          - xxx.example.com
+          - yyy.example.com
+          servingCertificate:
+            name: my-serving-cert
+  services:
+    - service: APIServer
+      servicePublishingStrategy:
+        type: LoadBalancer
+        loadBalancer:
+          hostname: "api.test-cluster.test.com"
+    - service: OAuthServer
+      servicePublishingStrategy:
+        type: Route
+    - service: OIDC
+      servicePublishingStrategy:
+        type: Route
+    - service: Konnectivity
+      servicePublishingStrategy:
+        type: Route
+    - service: Ignition
+      servicePublishingStrategy:
+        type: Route
+    - service: OVNSbDb
+      servicePublishingStrategy:
+        type: Route
+---
+# Source: deploy-cluster/templates/MetalLB.yaml
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: "test-cluster-api-address-pool"
+  namespace: metallb-system
+spec:
+  addresses:
+    - 192.168.2.2/32
+  autoAssign: false
+---
+# Source: deploy-cluster/templates/InfraEnv.yaml
+apiVersion: agent-install.openshift.io/v1beta1
+kind: InfraEnv
+metadata:
+  name: "test-cluster"
+  namespace: "test-cluster"
+  annotations:
+    helm.sh/hook-weight: "10"
+spec:
+  sshAuthorizedKey: "ssh-rsa ..."
+  pullSecretRef:
+    name: assisted-deployment-pull-secret
+  nmStateConfigLabelSelector:
+    matchLabels:
+      nmstate-cluster: "test-cluster"
+  additionalNTPSources:
+    - pool.ntp.org
+---
+# Source: deploy-cluster/templates/MetalLB.yaml
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: "test-cluster-api-adv"
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+    - "test-cluster-api-address-pool"
+---
+# Source: deploy-cluster/templates/NMStateConfig.yaml
+apiVersion: agent-install.openshift.io/v1beta1
+kind: NMStateConfig
+metadata:
+  name: "openshift-worker-0"
+  namespace: "test-cluster"
+  annotations:
+    helm.sh/hook-weight: "5"
+  labels:
+    nmstate-cluster: "test-cluster"
+spec:
+  config:
+    interfaces:
+    - ipv4:
+        dhcp: true
+        enabled: true
+      ipv6:
+        enabled: false
+      macAddress: aa:aa:aa:aa:aa:aa
+      name: eno1
+      state: up
+      type: ethernet
+  interfaces:
+    - name: "eno1"
+      macAddress: "aa:aa:aa:aa:aa:aa"
+---
+# Source: deploy-cluster/templates/NMStateConfig.yaml
+apiVersion: agent-install.openshift.io/v1beta1
+kind: NMStateConfig
+metadata:
+  name: "openshift-worker-1"
+  namespace: "test-cluster"
+  annotations:
+    helm.sh/hook-weight: "5"
+  labels:
+    nmstate-cluster: "test-cluster"
+spec:
+  config:
+    interfaces:
+    - ipv4:
+        dhcp: true
+        enabled: true
+      ipv6:
+        enabled: false
+      macAddress: bb:bb:bb:bb:bb:bb
+      name: eno1
+      state: up
+      type: ethernet
+  interfaces:
+    - name: "eno1"
+      macAddress: "bb:bb:bb:bb:bb:bb"
+---
+# Source: deploy-cluster/templates/NodePool.yaml
+apiVersion: hypershift.openshift.io/v1beta1
+kind: NodePool
+metadata:
+  name: "test-cluster"
+  namespace: "test-cluster"
+  annotations:
+    helm.sh/hook-weight: "25"
+spec:
+  clusterName: "test-cluster"
+  release:
+    image: "quay.io/openshift-release-dev/ocp-release:4.12.0-x86_64"
+  management:
+    upgradeType: InPlace
+  platform:
+    type: "Agent"
+    agent:
+      agentLabelSelector:
+        matchLabels:
+          infraenvs.agent-install.openshift.io: "test-cluster"
+  config:
+    - name: configMap1
+    - name: configMap2
+    - name: "workload-partitioning"
+---
+# Source: deploy-cluster/templates/PatchApiSvc.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: patch-api-svc
+  namespace: "test-cluster"
+  annotations:
+    helm.sh/hook: post-install
+    helm.sh/hook-weight: "5"
+spec:
+  ttlSecondsAfterFinished: 600
+  template:
+    spec:
+      serviceAccountName: hypershift-installer
+      containers:
+        - name: ose-client
+          image: registry.redhat.io/openshift4/ose-cli:latest
+          command:
+            - oc
+          args:
+            - patch
+            - service
+            - kube-apiserver
+            - -n
+            - "test-cluster-test-cluster"
+            - -p
+            - '{"metadata": {"annotations": {"metallb.universe.tf/address-pool": "test-cluster-api-address-pool"}}}'
+      restartPolicy: OnFailure
+---
+# Source: deploy-cluster/templates/PostSync.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: worker-setup
+  namespace: "test-cluster"
+  annotations:
+    helm.sh/hook: post-install
+    helm.sh/hook-weight: "10"
+spec:
+  ttlSecondsAfterFinished: 600
+  template:
+    spec:
+      serviceAccountName: hypershift-installer
+      initContainers:
+        - name: scale-nodepool
+          image: registry.redhat.io/openshift4/ose-cli:latest
+          command:
+            - bash
+          args:
+            - /script/nodepool_scale.sh
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          volumeMounts:
+            - name: cluster-setup
+              mountPath: "/script"
+              readOnly: true
+        - name: wait-node
+          image: registry.redhat.io/openshift4/ose-cli:latest
+          command:
+            - bash
+          args:
+            - /script/wait_node.sh
+          env:
+            - name: KUBECONFIG
+              value: "/secrets/kubeconfig"
+          volumeMounts:
+            - name: kubeconfig
+              mountPath: "/secrets"
+              readOnly: true
+            - name: cluster-setup
+              mountPath: "/script"
+              readOnly: true
+      containers:
+        - name: configure-ingress
+          image: registry.redhat.io/openshift4/ose-cli:latest
+          command:
+            - bash
+          args:
+            - /script/ingress_setup.sh
+          env:
+            - name: KUBECONFIG
+              value: "/secrets/kubeconfig"
+          volumeMounts:
+            - name: kubeconfig
+              mountPath: "/secrets"
+              readOnly: true
+            - name: cluster-setup
+              mountPath: "/script"
+              readOnly: true
+      restartPolicy: OnFailure
+      volumes:
+        - name: kubeconfig
+          secret:
+            secretName: "test-cluster-admin-kubeconfig"
+        - name: cluster-setup
+          configMap:
+            name: cluster-setup
