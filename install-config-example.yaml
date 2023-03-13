@@ -6,7 +6,7 @@ hypershift:
   additionalNTPSources: # Optional
     - pool.ntp.org
   clusterConfiguration: # Optional, see https://hypershift-docs.netlify.app/how-to/cluster-configuration/
-  nodePoolConfigs: # Optional, only required if you want to specify configRefs or reservedCpuSet for the NodePool
+  nodePoolConfigs: # Optional, only required if you want to customize one of these values
     - name: worker
       configRefs: # Optional, see https://hypershift-docs.netlify.app/reference/api/#hypershift.openshift.io/v1beta1.NodePoolSpec
         - name: configMap1 # Needs to be pre-created, and should exist in a namespace called <cluster-name>
