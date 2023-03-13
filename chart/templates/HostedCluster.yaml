@@ -57,9 +57,9 @@ spec:
   additionalTrustBundle:
     name: trusted-ca
 {{- end }}
-{{- if hasKey .Values.hypershift "configuration" }}
+{{- if hasKey .Values.hypershift "clusterConfiguration" }}
   configuration:
-    {{- .Values.hypershift.configuration | toYaml | nindent 4 }}
+    {{- .Values.hypershift.clusterConfiguration | toYaml | nindent 4 }}
 {{- end }}
   services:
     - service: APIServer

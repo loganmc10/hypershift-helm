@@ -72,7 +72,7 @@ data:
       agent_count=$(oc get agent -n "${NAMESPACE}" --no-headers | wc -l)
     done
     oc wait --timeout=1h --for=condition=requirementsmet -n "${NAMESPACE}" agent --all
-    oc -n "${NAMESPACE}" scale nodepool "${NAMESPACE}" --replicas ${bmh_count}
+    oc -n "${NAMESPACE}" scale nodepool "worker" --replicas 2
   wait_node.sh: |
     set -e
 
@@ -179,7 +179,7 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: "workload-partitioning"
+  name: "worker-workload-partitioning"
   namespace: "test-cluster"
 data:
   config: |
@@ -308,7 +308,7 @@ metadata:
     bmac.agent-install.openshift.io/hostname: "openshift-worker-0"
     helm.sh/hook-weight: "15"
   labels:
-    infraenvs.agent-install.openshift.io: "test-cluster"
+    infraenvs.agent-install.openshift.io: "worker"
 spec:
   bootMode: "UEFI"
   bmc:
@@ -331,7 +331,7 @@ metadata:
     bmac.agent-install.openshift.io/hostname: "openshift-worker-1"
     helm.sh/hook-weight: "15"
   labels:
-    infraenvs.agent-install.openshift.io: "test-cluster"
+    infraenvs.agent-install.openshift.io: "worker"
 spec:
   bootMode: "UEFI"
   bmc:
@@ -417,7 +417,7 @@ spec:
 apiVersion: agent-install.openshift.io/v1beta1
 kind: InfraEnv
 metadata:
-  name: "test-cluster"
+  name: "worker"
   namespace: "test-cluster"
   annotations:
     helm.sh/hook-weight: "10"
@@ -427,7 +427,7 @@ spec:
     name: assisted-deployment-pull-secret
   nmStateConfigLabelSelector:
     matchLabels:
-      nmstate-cluster: "test-cluster"
+      nmstate-cluster: "worker"
   additionalNTPSources:
     - pool.ntp.org
   proxy:
@@ -454,7 +454,7 @@ metadata:
   annotations:
     helm.sh/hook-weight: "5"
   labels:
-    nmstate-cluster: "test-cluster"
+    nmstate-cluster: "worker"
 spec:
   config:
     interfaces:
@@ -480,7 +480,7 @@ metadata:
   annotations:
     helm.sh/hook-weight: "5"
   labels:
-    nmstate-cluster: "test-cluster"
+    nmstate-cluster: "worker"
 spec:
   config:
     interfaces:
@@ -501,7 +501,7 @@ spec:
 apiVersion: hypershift.openshift.io/v1beta1
 kind: NodePool
 metadata:
-  name: "test-cluster"
+  name: "worker"
   namespace: "test-cluster"
   annotations:
     helm.sh/hook-weight: "25"
@@ -516,11 +516,11 @@ spec:
     agent:
       agentLabelSelector:
         matchLabels:
-          infraenvs.agent-install.openshift.io: "test-cluster"
+          infraenvs.agent-install.openshift.io: "worker"
   config:
     - name: configMap1
     - name: configMap2
-    - name: "workload-partitioning"
+    - name: "worker-workload-partitioning"
 ---
 # Source: deploy-cluster/templates/PatchApiSvc.yaml
 apiVersion: batch/v1

@@ -5,26 +5,24 @@ hypershift:
   clusterImageSet: quay.io/openshift-release-dev/ocp-release:4.12.0-x86_64
   additionalNTPSources:
     - pool.ntp.org
-  clusterConfiguration:
-    apiServer:
-      servingCerts:
-        namedCertificates:
-          - names:
-              - xxx.example.com
-              - yyy.example.com
-            servingCertificate:
-              name: my-serving-cert
   nodePoolConfigs:
-    - name: worker
+    - name: poolone
       configRefs:
         - name: configMap1
         - name: configMap2
       reservedCpuSet: "0-1,32-33"
+    - name: pooltwo
+      imageSet: quay.io/openshift-release-dev/ocp-release:4.11.0-x86_64
+      configRefs:
+        - name: configMap1
+        - name: configMap3
 
 baseDomain: test.com
 compute:
-  - name: worker
-    replicas: 2
+  - name: poolone
+    replicas: 1
+  - name: pooltwo
+    replicas: 1
 metadata:
   name: test-cluster
 networking:
@@ -34,19 +32,13 @@ networking:
   networkType: OVNKubernetes
   serviceNetwork:
     - 172.30.0.0/16
-proxy:
-  httpProxy: http://example.com:3128
-  httpsProxy: http://example.com:3128
-  noProxy: 10.100.100.0/24
 platform:
   baremetal:
-    apiVIPs:
-      - 192.168.2.2
-    ingressVIPs:
-      - 192.168.3.3
+    apiVIP: 192.168.2.2
+    ingressVIP: 192.168.3.3
     hosts:
       - name: openshift-worker-0
-        role: worker
+        role: poolone
         bmc:
           address: "redfish-virtualmedia://10.100.100.100/redfish/v1/Systems/1"
           username: admin
@@ -66,7 +58,7 @@ platform:
               ipv6:
                 enabled: false
       - name: openshift-worker-1
-        role: worker
+        role: pooltwo
         bmc:
           address: "redfish-virtualmedia://10.100.100.200/redfish/v1/Systems/1"
           username: admin

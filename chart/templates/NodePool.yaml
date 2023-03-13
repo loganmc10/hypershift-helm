@@ -1,14 +1,25 @@
+{{- $namespace := .Values.metadata.name }}
+{{- $imageset := .Values.hypershift.clusterImageSet }}
+{{- $nodepoolconfigs := .Values.hypershift.nodePoolConfigs }}
+{{- range .Values.compute }}
+{{- $poolconfig:= dict }}
+{{- $poolname := .name }}
+  {{- range $nodepoolconfigs }}
+    {{- if eq .name $poolname }}
+      {{- $poolconfig = . }}
+    {{- end }}
+  {{- end }}
 apiVersion: hypershift.openshift.io/v1beta1
 kind: NodePool
 metadata:
-  name: {{ .Values.metadata.name | quote }}
-  namespace: {{ .Values.metadata.name | quote }}
+  name: {{ .name | quote }}
+  namespace: {{ $namespace | quote }}
   annotations:
     helm.sh/hook-weight: "25"
 spec:
-  clusterName: {{ .Values.metadata.name | quote }}
+  clusterName: {{ $namespace | quote }}
   release:
-    image: {{ .Values.hypershift.clusterImageSet | quote }}
+    image: {{ $poolconfig.imageSet | default $imageset | quote }}
   management:
     upgradeType: InPlace
   platform:
@@ -16,11 +27,13 @@ spec:
     agent:
       agentLabelSelector:
         matchLabels:
-          infraenvs.agent-install.openshift.io: {{ .Values.metadata.name | quote }}
+          infraenvs.agent-install.openshift.io: {{ .name | quote }}
   config:
-{{- if hasKey .Values.hypershift "nodePoolConfigRefs" }}
-    {{- .Values.hypershift.nodePoolConfigRefs | toYaml | nindent 4 }}
+{{- if hasKey $poolconfig "configRefs" }}
+    {{- $poolconfig.configRefs | toYaml | nindent 4 }}
 {{- end }}
-{{- if hasKey .Values.hypershift "reservedCpuSet" }}
-    - name: "workload-partitioning"
+{{- if hasKey $poolconfig "reservedCpuSet" }}
+    - name: "{{ .name }}-workload-partitioning"
+{{- end }}
+---
 {{- end }}

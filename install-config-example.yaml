@@ -5,15 +5,18 @@ hypershift:
   clusterImageSet: quay.io/openshift-release-dev/ocp-release:4.12.0-x86_64 # Required
   additionalNTPSources: # Optional
     - pool.ntp.org
-  configuration: # Optional, see https://hypershift-docs.netlify.app/how-to/cluster-configuration/
-  nodePoolConfigRefs: # Optional, see https://hypershift-docs.netlify.app/reference/api/#hypershift.openshift.io/v1beta1.NodePoolSpec
-    - name: configMap1 # Needs to be pre-created, and should exist in a namespace called <cluster-name>
-    - name: configMap2
-  reservedCpuSet: <reserved_set> # Optional, example: "0-1,32-33"  there should be no spaces. See https://docs.openshift.com/container-platform/latest/scalability_and_performance/sno-du-enabling-workload-partitioning-on-single-node-openshift.html
+  clusterConfiguration: # Optional, see https://hypershift-docs.netlify.app/how-to/cluster-configuration/
+  nodePoolConfigs: # Optional, only required if you want to customize one of these values
+    - name: worker
+      configRefs: # Optional, see https://hypershift-docs.netlify.app/reference/api/#hypershift.openshift.io/v1beta1.NodePoolSpec
+        - name: configMap1 # Needs to be pre-created, and should exist in a namespace called <cluster-name>
+        - name: configMap2
+      imageSet: quay.io/openshift-release-dev/ocp-release:4.11.0-x86_64 # Optional, will default to the value of clusterImageSet
+      reservedCpuSet: <reserved_set> # Optional, example: "0-1,32-33"  there should be no spaces. See https://docs.openshift.com/container-platform/latest/scalability_and_performance/sno-du-enabling-workload-partitioning-on-single-node-openshift.html
 
 baseDomain: <cluster_domain>
 compute:
-  - name: worker
+  - name: worker # This will be the name of the NodePool that is created
     replicas: 2
 metadata:
   name: <example_cluster_name>
@@ -30,7 +33,7 @@ platform:
     ingressVIP: <ingress_address> # Should be in the same subnet as the hosted cluster worker nodes
     hosts:
       - name: openshift-worker-0
-        role: worker
+        role: worker # Should match the name of the NodePool
         bmc:
           address: "redfish-virtualmedia://<bmc_ip_address>/redfish/v1/Systems/1"
           username: <username>
@@ -50,7 +53,7 @@ platform:
               ipv6:
                 enabled: false
       - name: openshift-worker-1
-        role: worker
+        role: worker # Should match the name of the NodePool
         bmc:
           address: "redfish-virtualmedia://<bmc_ip_address>/redfish/v1/Systems/1"
           username: <username>

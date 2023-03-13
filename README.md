@@ -30,11 +30,11 @@ spec:
   sources:
   - repoURL: 'https://loganmc10.github.io/hypershift-helm'
     chart: deploy-cluster
-    targetRevision: 0.1.13
+    targetRevision: 0.1.14
     helm:
       valueFiles:
       - $values/install-config.yaml
-  - repoURL: 'https://git.example.gom/org/install-configs.git'
+  - repoURL: 'https://git.example.com/org/install-configs.git'
     targetRevision: main
     ref: values
 ```

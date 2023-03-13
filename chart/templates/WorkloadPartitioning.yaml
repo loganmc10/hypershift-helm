@@ -2,21 +2,31 @@
 [crio.runtime.workloads.management]
 activation_annotation = "target.workload.openshift.io/management"
 annotation_prefix = "resources.workload.openshift.io"
-resources = { "cpushares" = 0, "cpuset" = {{ .Values.hypershift.reservedCpuSet | quote }} }
+resources = { "cpushares" = 0, "cpuset" = {{ .reservedCpuSet | quote }} }
 {{ end }}
 {{- define "openshift_workload_pinning" -}}
 {
   "management": {
-    "cpuset": {{ .Values.hypershift.reservedCpuSet | quote }}
+    "cpuset": {{ .reservedCpuSet | quote }}
   }
 }
 {{ end }}
-{{- if hasKey .Values.hypershift "reservedCpuSet" }}
+{{- $namespace := .Values.metadata.name }}
+{{- $nodepoolconfigs := .Values.hypershift.nodePoolConfigs }}
+{{- range .Values.compute }}
+{{- $poolconfig:= dict }}
+{{- $poolname := .name }}
+  {{- range $nodepoolconfigs }}
+    {{- if eq .name $poolname }}
+      {{- $poolconfig = . }}
+    {{- end }}
+  {{- end }}
+{{- if hasKey $poolconfig "reservedCpuSet" }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: "workload-partitioning"
-  namespace: {{ .Values.metadata.name | quote }}
+  name: "{{ .name }}-workload-partitioning"
+  namespace: {{ $namespace | quote }}
 data:
   config: |
     apiVersion: machineconfiguration.openshift.io/v1
@@ -32,17 +42,19 @@ data:
         storage:
           files:
             - contents:
-                source: data:text/plain;charset=utf-8;base64,{{ include "workload_partitioning" . | b64enc }}
+                source: data:text/plain;charset=utf-8;base64,{{ include "workload_partitioning" $poolconfig | b64enc }}
               mode: 420
               overwrite: true
               path: /etc/crio/crio.conf.d/01-workload-partitioning
               user:
                 name: root
             - contents:
-                source: data:text/plain;charset=utf-8;base64,{{ include "openshift_workload_pinning" . | b64enc }}
+                source: data:text/plain;charset=utf-8;base64,{{ include "openshift_workload_pinning" $poolconfig | b64enc }}
               mode: 420
               overwrite: true
               path: /etc/kubernetes/openshift-workload-pinning
               user:
                 name: root
+---
+{{- end }}
 {{- end }}
