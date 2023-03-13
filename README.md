@@ -34,7 +34,7 @@ spec:
     helm:
       valueFiles:
       - $values/install-config.yaml
-  - repoURL: 'https://git.example.gom/org/install-configs.git'
+  - repoURL: 'https://git.example.com/org/install-configs.git'
     targetRevision: main
     ref: values
 ```
