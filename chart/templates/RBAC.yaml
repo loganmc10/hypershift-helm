@@ -24,21 +24,6 @@ rules:
       - patch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: hypershift-installer-role
-  namespace: "{{ .Values.metadata.name }}-{{ .Values.metadata.name }}"
-  annotations:
-    helm.sh/hook-weight: "30"
-rules:
-  - apiGroups: [""]
-    resources:
-      - services
-    verbs:
-      - get
-      - patch
----
-apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: hypershift-installer-binding
@@ -46,22 +31,6 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: hypershift-installer
-roleRef:
-  kind: Role
-  name: hypershift-installer-role
-  apiGroup: rbac.authorization.k8s.io
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: hypershift-installer-binding
-  namespace: "{{ .Values.metadata.name }}-{{ .Values.metadata.name }}"
-  annotations:
-    helm.sh/hook-weight: "30"
-subjects:
-  - kind: ServiceAccount
-    name: hypershift-installer
-    namespace: {{ .Values.metadata.name | quote }}
 roleRef:
   kind: Role
   name: hypershift-installer-role

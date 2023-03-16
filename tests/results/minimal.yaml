@@ -217,22 +217,6 @@ rules:
 ---
 # Source: deploy-cluster/templates/RBAC.yaml
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: hypershift-installer-role
-  namespace: "test-cluster-test-cluster"
-  annotations:
-    helm.sh/hook-weight: "30"
-rules:
-  - apiGroups: [""]
-    resources:
-      - services
-    verbs:
-      - get
-      - patch
----
-# Source: deploy-cluster/templates/RBAC.yaml
-apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: hypershift-installer-binding
@@ -245,22 +229,16 @@ roleRef:
   name: hypershift-installer-role
   apiGroup: rbac.authorization.k8s.io
 ---
-# Source: deploy-cluster/templates/RBAC.yaml
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+# Source: deploy-cluster/templates/PatchApiSvc.yaml
+apiVersion: v1
+kind: Service
 metadata:
-  name: hypershift-installer-binding
+  name: kube-apiserver
   namespace: "test-cluster-test-cluster"
   annotations:
-    helm.sh/hook-weight: "30"
-subjects:
-  - kind: ServiceAccount
-    name: hypershift-installer
-    namespace: "test-cluster"
-roleRef:
-  kind: Role
-  name: hypershift-installer-role
-  apiGroup: rbac.authorization.k8s.io
+    helm.sh/hook-weight: "35"
+    argocd.argoproj.io/sync-options: ServerSideApply=true
+    metallb.universe.tf/address-pool: "test-cluster-api-address-pool"
 ---
 # Source: deploy-cluster/templates/BareMetalHost.yaml
 apiVersion: metal3.io/v1alpha1
@@ -468,35 +446,6 @@ spec:
         matchLabels:
           infraenvs.agent-install.openshift.io: "worker"
   config:
----
-# Source: deploy-cluster/templates/PatchApiSvc.yaml
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: patch-api-svc
-  namespace: "test-cluster"
-  annotations:
-    helm.sh/hook: post-install
-    helm.sh/hook-weight: "5"
-spec:
-  ttlSecondsAfterFinished: 600
-  template:
-    spec:
-      serviceAccountName: hypershift-installer
-      containers:
-        - name: ose-client
-          image: registry.redhat.io/openshift4/ose-cli:latest
-          command:
-            - oc
-          args:
-            - patch
-            - service
-            - kube-apiserver
-            - -n
-            - "test-cluster-test-cluster"
-            - -p
-            - '{"metadata": {"annotations": {"metallb.universe.tf/address-pool": "test-cluster-api-address-pool"}}}'
-      restartPolicy: OnFailure
 ---
 # Source: deploy-cluster/templates/PostSync.yaml
 apiVersion: batch/v1
