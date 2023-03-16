@@ -5,6 +5,12 @@ kind: Namespace
 metadata:
   name: "test-cluster"
 ---
+# Source: deploy-cluster/templates/Namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: "test-cluster-test-cluster"
+---
 # Source: deploy-cluster/templates/RBAC.yaml
 apiVersion: v1
 kind: ServiceAccount
