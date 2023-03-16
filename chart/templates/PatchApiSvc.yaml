@@ -5,5 +5,5 @@ metadata:
   namespace: "{{ .Values.metadata.name }}-{{ .Values.metadata.name }}"
   annotations:
     helm.sh/hook-weight: "30"
-    argocd.argoproj.io/sync-options: ServerSideApply=true,Validate=false
+    argocd.argoproj.io/sync-options: ServerSideApply=true,SkipDryRunOnMissingResource=true
     metallb.universe.tf/address-pool: "{{ .Values.metadata.name }}-api-address-pool"
