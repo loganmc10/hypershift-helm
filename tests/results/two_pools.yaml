@@ -72,7 +72,8 @@ data:
       agent_count=$(oc get agent -n "${NAMESPACE}" --no-headers | wc -l)
     done
     oc wait --timeout=1h --for=condition=requirementsmet -n "${NAMESPACE}" agent --all
-    oc -n "${NAMESPACE}" scale nodepool "worker" --replicas 2
+    oc -n "${NAMESPACE}" scale nodepool "poolone" --replicas 1
+    oc -n "${NAMESPACE}" scale nodepool "pooltwo" --replicas 1
   wait_node.sh: |
     set -e
 
@@ -175,6 +176,41 @@ data:
       type: LoadBalancer
     EOF
 ---
+# Source: deploy-cluster/templates/WorkloadPartitioning.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "poolone-workload-partitioning"
+  namespace: "test-cluster"
+data:
+  config: |
+    apiVersion: machineconfiguration.openshift.io/v1
+    kind: MachineConfig
+    metadata:
+      labels:
+        machineconfiguration.openshift.io/role: "worker"
+      name: 02-workload-partitioning
+    spec:
+      config:
+        ignition:
+          version: 3.2.0
+        storage:
+          files:
+            - contents:
+                source: data:text/plain;charset=utf-8;base64,W2NyaW8ucnVudGltZS53b3JrbG9hZHMubWFuYWdlbWVudF0KYWN0aXZhdGlvbl9hbm5vdGF0aW9uID0gInRhcmdldC53b3JrbG9hZC5vcGVuc2hpZnQuaW8vbWFuYWdlbWVudCIKYW5ub3RhdGlvbl9wcmVmaXggPSAicmVzb3VyY2VzLndvcmtsb2FkLm9wZW5zaGlmdC5pbyIKcmVzb3VyY2VzID0geyAiY3B1c2hhcmVzIiA9IDAsICJjcHVzZXQiID0gIjAtMSwzMi0zMyIgfQo=
+              mode: 420
+              overwrite: true
+              path: /etc/crio/crio.conf.d/01-workload-partitioning
+              user:
+                name: root
+            - contents:
+                source: data:text/plain;charset=utf-8;base64,ewogICJtYW5hZ2VtZW50IjogewogICAgImNwdXNldCI6ICIwLTEsMzItMzMiCiAgfQp9Cg==
+              mode: 420
+              overwrite: true
+              path: /etc/kubernetes/openshift-workload-pinning
+              user:
+                name: root
+---
 # Source: deploy-cluster/templates/CApi.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -273,7 +309,7 @@ metadata:
     bmac.agent-install.openshift.io/hostname: "openshift-worker-0"
     helm.sh/hook-weight: "15"
   labels:
-    infraenvs.agent-install.openshift.io: "worker"
+    infraenvs.agent-install.openshift.io: "poolone"
 spec:
   bootMode: "UEFI"
   bmc:
@@ -296,7 +332,7 @@ metadata:
     bmac.agent-install.openshift.io/hostname: "openshift-worker-1"
     helm.sh/hook-weight: "15"
   labels:
-    infraenvs.agent-install.openshift.io: "worker"
+    infraenvs.agent-install.openshift.io: "pooltwo"
 spec:
   bootMode: "UEFI"
   bmc:
@@ -373,7 +409,7 @@ spec:
 apiVersion: agent-install.openshift.io/v1beta1
 kind: InfraEnv
 metadata:
-  name: "worker"
+  name: "poolone"
   namespace: "test-cluster"
   annotations:
     helm.sh/hook-weight: "10"
@@ -383,7 +419,27 @@ spec:
     name: assisted-deployment-pull-secret
   nmStateConfigLabelSelector:
     matchLabels:
-      nmstate-cluster: "worker"
+      nmstate-cluster: "poolone"
+  additionalNTPSources:
+    - pool.ntp.org
+---
+# Source: deploy-cluster/templates/InfraEnv.yaml
+apiVersion: agent-install.openshift.io/v1beta1
+kind: InfraEnv
+metadata:
+  name: "pooltwo"
+  namespace: "test-cluster"
+  annotations:
+    helm.sh/hook-weight: "10"
+spec:
+  sshAuthorizedKey: "ssh-rsa ..."
+  pullSecretRef:
+    name: assisted-deployment-pull-secret
+  nmStateConfigLabelSelector:
+    matchLabels:
+      nmstate-cluster: "pooltwo"
+  additionalNTPSources:
+    - pool.ntp.org
 ---
 # Source: deploy-cluster/templates/MetalLB.yaml
 apiVersion: metallb.io/v1beta1
@@ -404,7 +460,7 @@ metadata:
   annotations:
     helm.sh/hook-weight: "5"
   labels:
-    nmstate-cluster: "worker"
+    nmstate-cluster: "poolone"
 spec:
   config:
     interfaces:
@@ -430,7 +486,7 @@ metadata:
   annotations:
     helm.sh/hook-weight: "5"
   labels:
-    nmstate-cluster: "worker"
+    nmstate-cluster: "pooltwo"
 spec:
   config:
     interfaces:
@@ -451,7 +507,7 @@ spec:
 apiVersion: hypershift.openshift.io/v1beta1
 kind: NodePool
 metadata:
-  name: "worker"
+  name: "poolone"
   namespace: "test-cluster"
   annotations:
     helm.sh/hook-weight: "25"
@@ -466,8 +522,35 @@ spec:
     agent:
       agentLabelSelector:
         matchLabels:
-          infraenvs.agent-install.openshift.io: "worker"
+          infraenvs.agent-install.openshift.io: "poolone"
   config:
+    - name: configMap1
+    - name: configMap2
+    - name: "poolone-workload-partitioning"
+---
+# Source: deploy-cluster/templates/NodePool.yaml
+apiVersion: hypershift.openshift.io/v1beta1
+kind: NodePool
+metadata:
+  name: "pooltwo"
+  namespace: "test-cluster"
+  annotations:
+    helm.sh/hook-weight: "25"
+spec:
+  clusterName: "test-cluster"
+  release:
+    image: "quay.io/openshift-release-dev/ocp-release:4.11.0-x86_64"
+  management:
+    upgradeType: InPlace
+  platform:
+    type: "Agent"
+    agent:
+      agentLabelSelector:
+        matchLabels:
+          infraenvs.agent-install.openshift.io: "pooltwo"
+  config:
+    - name: configMap1
+    - name: configMap3
 ---
 # Source: deploy-cluster/templates/PatchApiSvc.yaml
 apiVersion: batch/v1

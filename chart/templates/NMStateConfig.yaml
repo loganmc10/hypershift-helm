@@ -8,7 +8,7 @@ metadata:
   annotations:
     helm.sh/hook-weight: "5"
   labels:
-    nmstate-cluster: {{ $namespace | quote }}
+    nmstate-cluster: {{ .role | quote }}
 spec:
   config:
     {{- .networkConfig | toYaml | nindent 4 }}

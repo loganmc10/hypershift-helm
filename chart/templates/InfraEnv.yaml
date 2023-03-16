@@ -1,22 +1,29 @@
+{{- $namespace := .Values.metadata.name }}
+{{- $sshkey := .Values.sshKey }}
+{{- $ntpsources := .Values.hypershift.additionalNTPSources | default list }}
+{{- $proxy := .Values.proxy | default dict }}
+{{- range .Values.compute }}
 apiVersion: agent-install.openshift.io/v1beta1
 kind: InfraEnv
 metadata:
-  name: {{ .Values.metadata.name | quote }}
-  namespace: {{ .Values.metadata.name | quote }}
+  name: {{ .name | quote }}
+  namespace: {{ $namespace | quote }}
   annotations:
     helm.sh/hook-weight: "10"
 spec:
-  sshAuthorizedKey: "{{ .Values.sshKey | trim }}"
+  sshAuthorizedKey: "{{ $sshkey | trim }}"
   pullSecretRef:
     name: assisted-deployment-pull-secret
   nmStateConfigLabelSelector:
     matchLabels:
-      nmstate-cluster: {{ .Values.metadata.name | quote }}
-{{- if hasKey .Values.hypershift "additionalNTPSources" }}
+      nmstate-cluster: {{ .name | quote }}
+{{- if ne (len $ntpsources) 0 }}
   additionalNTPSources:
-    {{- .Values.hypershift.additionalNTPSources | toYaml | nindent 4 }}
+    {{- $ntpsources | toYaml | nindent 4 }}
 {{- end }}
-{{- if hasKey .Values "proxy" }}
+{{- if ne (len $proxy) 0 }}
   proxy:
-    {{- .Values.proxy | toYaml | nindent 4 }}
+    {{- $proxy | toYaml | nindent 4 }}
+{{- end }}
+---
 {{- end }}
