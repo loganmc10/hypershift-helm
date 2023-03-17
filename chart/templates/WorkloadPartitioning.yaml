@@ -14,7 +14,7 @@ resources = { "cpushares" = 0, "cpuset" = {{ .reservedCpuSet | quote }} }
 {{- $namespace := .Values.metadata.name }}
 {{- $nodepoolconfigs := .Values.hypershift.nodePoolConfigs }}
 {{- range .Values.compute }}
-{{- $poolconfig:= dict }}
+{{- $poolconfig := dict }}
 {{- $poolname := .name }}
   {{- range $nodepoolconfigs }}
     {{- if eq .name $poolname }}

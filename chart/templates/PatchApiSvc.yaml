@@ -13,7 +13,7 @@ spec:
       serviceAccountName: hypershift-installer
       containers:
         - name: ose-client
-          image: registry.redhat.io/openshift4/ose-cli:latest
+          image: {{ template "ocp_client" }}
           command:
             - oc
           args:

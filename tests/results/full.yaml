@@ -538,7 +538,7 @@ spec:
       serviceAccountName: hypershift-installer
       containers:
         - name: ose-client
-          image: registry.redhat.io/openshift4/ose-cli:latest
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:1fc458ece66c8d4184b45b5c495a372a96b47432ae5a39844cd5837e3981685b # 4.12.0-x86_64-cli
           command:
             - oc
           args:
@@ -567,7 +567,7 @@ spec:
       serviceAccountName: hypershift-installer
       initContainers:
         - name: scale-nodepool
-          image: registry.redhat.io/openshift4/ose-cli:latest
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:1fc458ece66c8d4184b45b5c495a372a96b47432ae5a39844cd5837e3981685b # 4.12.0-x86_64-cli
           command:
             - bash
           args:
@@ -582,7 +582,7 @@ spec:
               mountPath: "/script"
               readOnly: true
         - name: wait-node
-          image: registry.redhat.io/openshift4/ose-cli:latest
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:1fc458ece66c8d4184b45b5c495a372a96b47432ae5a39844cd5837e3981685b # 4.12.0-x86_64-cli
           command:
             - bash
           args:
@@ -599,7 +599,7 @@ spec:
               readOnly: true
       containers:
         - name: configure-ingress
-          image: registry.redhat.io/openshift4/ose-cli:latest
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:1fc458ece66c8d4184b45b5c495a372a96b47432ae5a39844cd5837e3981685b # 4.12.0-x86_64-cli
           command:
             - bash
           args:

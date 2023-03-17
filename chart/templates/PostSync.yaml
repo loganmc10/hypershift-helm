@@ -137,7 +137,7 @@ spec:
       serviceAccountName: hypershift-installer
       initContainers:
         - name: scale-nodepool
-          image: registry.redhat.io/openshift4/ose-cli:latest
+          image: {{ template "ocp_client" }}
           command:
             - bash
           args:
@@ -152,7 +152,7 @@ spec:
               mountPath: "/script"
               readOnly: true
         - name: wait-node
-          image: registry.redhat.io/openshift4/ose-cli:latest
+          image: {{ template "ocp_client" }}
           command:
             - bash
           args:
@@ -169,7 +169,7 @@ spec:
               readOnly: true
       containers:
         - name: configure-ingress
-          image: registry.redhat.io/openshift4/ose-cli:latest
+          image: {{ template "ocp_client" }}
           command:
             - bash
           args:
