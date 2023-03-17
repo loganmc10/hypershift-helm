@@ -1,3 +1,6 @@
+# Intro
+See a blog post about this solution [here](https://cloud.redhat.com/blog/using-gitops-to-deploy-bare-metal-openshift-hosted-control-plane-clusters).
+
 # Prerequisites
 * OpenShift GitOps Operator v1.8+
 * MetalLB Operator
