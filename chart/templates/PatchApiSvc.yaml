@@ -13,7 +13,7 @@ spec:
       serviceAccountName: hypershift-installer
       containers:
         - name: ose-client
-          image: {{ template "ocp_client" }}
+          image: {{ include "ocp_client" . }}
           command:
             - oc
           args:
