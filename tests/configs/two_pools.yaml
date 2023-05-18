@@ -10,7 +10,6 @@ hypershift:
       configRefs:
         - name: configMap1
         - name: configMap2
-      reservedCpuSet: "0-1,32-33"
     - name: pooltwo
       imageSet: quay.io/openshift-release-dev/ocp-release:4.11.0-x86_64
       configRefs:
