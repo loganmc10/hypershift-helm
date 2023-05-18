@@ -32,8 +32,5 @@ spec:
 {{- if hasKey $poolconfig "configRefs" }}
     {{- $poolconfig.configRefs | toYaml | nindent 4 }}
 {{- end }}
-{{- if hasKey $poolconfig "reservedCpuSet" }}
-    - name: "{{ .name }}-workload-partitioning"
-{{- end }}
 ---
 {{- end }}
