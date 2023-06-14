@@ -16,7 +16,7 @@ spec:
   {{- range .networkConfig.interfaces }}
     {{- if eq .type "ethernet" }}
     - name: {{ .name | quote }}
-      macAddress: {{ .macAddress | quote }}
+      macAddress: {{ index . "mac-address" | quote }}
     {{- end }}
   {{- end }}
 ---

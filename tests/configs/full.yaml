@@ -58,7 +58,7 @@ platform:
           interfaces:
             - name: eno1
               type: ethernet
-              macAddress: aa:aa:aa:aa:aa:aa
+              mac-address: aa:aa:aa:aa:aa:aa
               state: up
               ipv4:
                 enabled: true
@@ -78,7 +78,7 @@ platform:
           interfaces:
             - name: eno1
               type: ethernet
-              macAddress: bb:bb:bb:bb:bb:bb
+              mac-address: bb:bb:bb:bb:bb:bb
               state: up
               ipv4:
                 enabled: true
