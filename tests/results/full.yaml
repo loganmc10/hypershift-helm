@@ -388,8 +388,8 @@ metadata:
     helm.sh/hook-weight: "10"
 spec:
   clusterRef:
-    name: "worker"
-    namespace:  "test-cluster"
+    name: "test-cluster"
+    namespace: "test-cluster-test-cluster"
   sshAuthorizedKey: "ssh-rsa ..."
   pullSecretRef:
     name: assisted-deployment-pull-secret
