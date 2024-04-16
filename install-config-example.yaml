@@ -2,6 +2,7 @@ apiVersion: v1
 
 # Additional parameters for hypershift-helm
 hypershift:
+  osImageVersion: "4.12"
   clusterImageSet: quay.io/openshift-release-dev/ocp-release:4.12.0-x86_64 # Required
   additionalNTPSources: # Optional
     - pool.ntp.org
@@ -12,6 +13,7 @@ hypershift:
       configRefs: # Optional, see https://hypershift-docs.netlify.app/reference/api/#hypershift.openshift.io/v1beta1.NodePoolSpec
         - name: configMap1 # Needs to be pre-created, and should exist in a namespace called <cluster-name>
         - name: configMap2
+      osImageVersion: "4.11"
       imageSet: quay.io/openshift-release-dev/ocp-release:4.11.0-x86_64 # Optional, will default to the value of clusterImageSet
 
 baseDomain: <cluster_domain>

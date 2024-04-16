@@ -1,8 +1,17 @@
 {{- $namespace := .Values.metadata.name }}
+{{- $osversion := .Value.hypershift.osImageVersion }}
 {{- $sshkey := .Values.sshKey }}
 {{- $ntpsources := .Values.hypershift.additionalNTPSources | default list }}
 {{- $proxy := .Values.proxy | default dict }}
+{{- $nodepoolconfigs := .Values.hypershift.nodePoolConfigs }}
 {{- range .Values.compute }}
+{{- $poolconfig:= dict }}
+{{- $poolname := .name }}
+  {{- range $nodepoolconfigs }}
+    {{- if eq .name $poolname }}
+      {{- $poolconfig = . }}
+    {{- end }}
+  {{- end }}
 apiVersion: agent-install.openshift.io/v1beta1
 kind: InfraEnv
 metadata:
@@ -11,9 +20,7 @@ metadata:
   annotations:
     helm.sh/hook-weight: "10"
 spec:
-  clusterRef:
-    name: "{{ $namespace }}"
-    namespace: "{{ $namespace }}-{{ $namespace }}"
+  osImageVersion: "{{ $poolconfig.osImageVersion | default $osversion }}"
   sshAuthorizedKey: "{{ $sshkey | trim }}"
   pullSecretRef:
     name: assisted-deployment-pull-secret
