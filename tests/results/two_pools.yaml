@@ -379,6 +379,7 @@ metadata:
   annotations:
     helm.sh/hook-weight: "10"
 spec:
+  osImageVersion: "4.12"
   sshAuthorizedKey: "ssh-rsa ..."
   pullSecretRef:
     name: assisted-deployment-pull-secret
@@ -397,6 +398,7 @@ metadata:
   annotations:
     helm.sh/hook-weight: "10"
 spec:
+  osImageVersion: "4.11"
   sshAuthorizedKey: "ssh-rsa ..."
   pullSecretRef:
     name: assisted-deployment-pull-secret
