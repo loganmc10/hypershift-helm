@@ -379,6 +379,9 @@ metadata:
   annotations:
     helm.sh/hook-weight: "10"
 spec:
+  clusterRef:
+    name: "poolone"
+    namespace:  "test-cluster"
   sshAuthorizedKey: "ssh-rsa ..."
   pullSecretRef:
     name: assisted-deployment-pull-secret
@@ -397,6 +400,9 @@ metadata:
   annotations:
     helm.sh/hook-weight: "10"
 spec:
+  clusterRef:
+    name: "pooltwo"
+    namespace:  "test-cluster"
   sshAuthorizedKey: "ssh-rsa ..."
   pullSecretRef:
     name: assisted-deployment-pull-secret
