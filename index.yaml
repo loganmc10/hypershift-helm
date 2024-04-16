@@ -65,13 +65,4 @@ entries:
     urls:
     - https://github.com/loganmc10/hypershift-helm/releases/download/deploy-cluster-dev-0.1.18/deploy-cluster-dev-0.1.18.tgz
     version: 0.1.18
-  - apiVersion: v2
-    created: "2024-04-16T22:44:02.262524235Z"
-    description: A Helm chart for deploying HyperShift clusters on bare metal
-    digest: 2d7edc05faaa38e816b952df8c7d1a7a7ac3a607f9f22890d31828c7979cd52b
-    name: deploy-cluster-dev
-    type: application
-    urls:
-    - https://github.com/loganmc10/hypershift-helm/releases/download/deploy-cluster-dev-0.1.17/deploy-cluster-dev-0.1.17.tgz
-    version: 0.1.17
 generated: "2024-04-16T22:54:02.301599311Z"
