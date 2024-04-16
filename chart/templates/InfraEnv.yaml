@@ -12,8 +12,8 @@ metadata:
     helm.sh/hook-weight: "10"
 spec:
   clusterRef:
-    name: "{{ .Values.metadata.name }}"
-    namespace:  "{{ .Values.metadata.name }}-{{ .Values.metadata.name }}"
+    name: "{{ $namespace }}"
+    namespace:  "{{ $namespace }}-{{ $namespace }}"
   sshAuthorizedKey: "{{ $sshkey | trim }}"
   pullSecretRef:
     name: assisted-deployment-pull-secret
