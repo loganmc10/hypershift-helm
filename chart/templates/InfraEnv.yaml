@@ -13,7 +13,7 @@ metadata:
 spec:
   clusterRef:
     name: "{{ $namespace }}"
-    namespace:  "{{ $namespace }}-{{ $namespace }}"
+    namespace: "{{ $namespace }}-{{ $namespace }}"
   sshAuthorizedKey: "{{ $sshkey | trim }}"
   pullSecretRef:
     name: assisted-deployment-pull-secret
