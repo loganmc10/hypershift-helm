@@ -1,5 +1,5 @@
 {{- $namespace := .Values.metadata.name }}
-{{- $osversion := .Value.hypershift.osImageVersion }}
+{{- $osversion := .Values.hypershift.osImageVersion }}
 {{- $sshkey := .Values.sshKey }}
 {{- $ntpsources := .Values.hypershift.additionalNTPSources | default list }}
 {{- $proxy := .Values.proxy | default dict }}
