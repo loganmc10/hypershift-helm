@@ -7,7 +7,7 @@ data:
   id_rsa.pub: {{ .Values.sshKey | b64enc | quote }}
 type: Opaque
 ---
-{{- if hasKey .Values "additionalTrustBundle" }}
+{{- if hasKey .Values.disconnected "additionalTrustBundle" }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -15,7 +15,7 @@ metadata:
   namespace: {{ .Values.metadata.name | quote }}
 data:
   ca-bundle.crt: |
-    {{- .Values.additionalTrustBundle |  nindent 4 }}
+    {{- .Values.disconnected.additionalTrustBundle |  nindent 4 }}
 ---
 {{- end }}
 apiVersion: hypershift.openshift.io/v1beta1
@@ -26,6 +26,7 @@ metadata:
   annotations:
     helm.sh/hook-weight: "20"
 spec:
+  olmCatalogPlacement: {{ .Values.disconnected.olmCatalogPlacement | default "management" }}
   release:
     image: {{ .Values.hypershift.clusterImageSet | quote }}
   platform:
@@ -49,11 +50,11 @@ spec:
 {{- if hasKey .Values "fips" }}
   fips: {{ .Values.fips }}
 {{- end }}
-{{- if hasKey .Values "imageContentSources" }}
+{{- if hasKey .Values.disconnected "imageContentSources" }}
   imageContentSources:
-    {{- .Values.imageContentSources | toYaml | nindent 4 }}
+    {{- .Values.disconnected.imageContentSources | toYaml | nindent 4 }}
 {{- end }}
-{{- if hasKey .Values "additionalTrustBundle" }}
+{{- if hasKey .Values.disconnected "additionalTrustBundle" }}
   additionalTrustBundle:
     name: trusted-ca
 {{- end }}

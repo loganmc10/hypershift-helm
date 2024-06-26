@@ -1,15 +1,31 @@
 apiVersion: v1
 
-# Additional parameters for disconnected clusters
-#additionalTrustBundle: |
-#  ca-bundle.crt: |
-#  < certificate bundle >
+# Parameters normally only required for disconnected clusters
+#disconnected:
+#  additionalTrustBundle: |
+#    ca-bundle.crt: |
+#    < certificate bundle >
+#  imageContentSources:
+#    - mirrors:
+#      - quay-mirror.example/openshift-release-dev/ocp-release
+#      source: quay.io/openshift-release-dev/ocp-release
+#  
+  # "management" or "guest". defaults to "management"
+#  olmCatalogPlacement: guest
+  
+  # if set to true, will disable all default catalog sources on hosted cluster.
+  # in combination with setting catalog placement to guest this is a workaround to force the worker node to use the imageContentSources we set.
+  # see https://hypershift-docs.netlify.app/how-to/disconnected/known-issues/#olm-default-catalog-sources-in-imagepullbackoff-state
+#  disableAllDefaultSources: false
+  
+  # Settings for the metallb instance on the HCP worker node
+#  metallb:
+#    startingCSV: metallb-operator.v4.12.0-....
+#    image: mirror.example.com/openshift4/redhat-operator-index:v4.12
+    # name of the catalog source containing metallb
+#    catalogSource: redhat-operators
 
-#imageContentSources:
-#  - mirrors:
-#    - quay-mirror.example/openshift-release-dev/ocp-release
-#    source: quay.io/openshift-release-dev/ocp-release
-
+  
 # Additional parameters for hypershift-helm
 hypershift:
   osImageVersion: "4.12"
