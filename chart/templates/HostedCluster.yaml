@@ -85,3 +85,6 @@ spec:
     - service: OVNSbDb
       servicePublishingStrategy:
         type: Route
+{{- if hasKey .Values.hypershift "olmCatalogPlacement" }}
+  olmCatalogPlacement: {{ .Values.hypershift.olmCatalogPlacement | quote }}
+{{- end }}

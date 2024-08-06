@@ -314,6 +314,7 @@ spec:
     - service: OVNSbDb
       servicePublishingStrategy:
         type: Route
+  olmCatalogPlacement: "guest"
 ---
 # Source: deploy-cluster/templates/MetalLB.yaml
 apiVersion: metallb.io/v1beta1
