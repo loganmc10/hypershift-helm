@@ -61,19 +61,6 @@ metadata:
   name: cluster-setup
   namespace: "test-cluster"
 data:
-  nodepool_scale.sh: |
-    set -e
-
-    agent_count=-1
-    bmh_count=$(oc get bmh -n "${NAMESPACE}" --no-headers | wc -l)
-    until [ "${bmh_count}" -eq "${agent_count}" ]
-    do
-      sleep 60
-      agent_count=$(oc get agent -n "${NAMESPACE}" --no-headers | wc -l)
-    done
-    oc wait --timeout=1h --for=condition=requirementsmet -n "${NAMESPACE}" agent --all
-    oc -n "${NAMESPACE}" scale nodepool "poolone" --replicas 1
-    oc -n "${NAMESPACE}" scale nodepool "pooltwo" --replicas 1
   wait_node.sh: |
     set -e
 
@@ -195,32 +182,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: hypershift-installer-role
-  namespace: "test-cluster"
-rules:
-  - apiGroups: ["metal3.io"]
-    resources:
-      - baremetalhosts
-    verbs:
-      - list
-  - apiGroups: ["agent-install.openshift.io"]
-    resources:
-      - agents
-    verbs:
-      - list
-      - watch
-  - apiGroups: ["hypershift.openshift.io"]
-    resources:
-      - nodepools
-      - nodepools/scale
-    verbs:
-      - get
-      - patch
----
-# Source: deploy-cluster/templates/RBAC.yaml
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: hypershift-installer-role
   namespace: "test-cluster-test-cluster"
   annotations:
     helm.sh/hook-weight: "30"
@@ -231,20 +192,6 @@ rules:
     verbs:
       - get
       - patch
----
-# Source: deploy-cluster/templates/RBAC.yaml
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: hypershift-installer-binding
-  namespace: "test-cluster"
-subjects:
-  - kind: ServiceAccount
-    name: hypershift-installer
-roleRef:
-  kind: Role
-  name: hypershift-installer-role
-  apiGroup: rbac.authorization.k8s.io
 ---
 # Source: deploy-cluster/templates/RBAC.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -482,6 +429,7 @@ spec:
   clusterName: "test-cluster"
   release:
     image: "quay.io/openshift-release-dev/ocp-release:4.12.0-x86_64"
+  replicas: 1
   management:
     upgradeType: InPlace
   platform:
@@ -506,6 +454,7 @@ spec:
   clusterName: "test-cluster"
   release:
     image: "quay.io/openshift-release-dev/ocp-release:4.11.0-x86_64"
+  replicas: 1
   management:
     upgradeType: InPlace
   platform:
@@ -562,21 +511,6 @@ spec:
     spec:
       serviceAccountName: hypershift-installer
       initContainers:
-        - name: scale-nodepool
-          image: registry.redhat.io/openshift4/ose-cli:latest
-          command:
-            - bash
-          args:
-            - /script/nodepool_scale.sh
-          env:
-            - name: NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
-          volumeMounts:
-            - name: cluster-setup
-              mountPath: "/script"
-              readOnly: true
         - name: wait-node
           image: registry.redhat.io/openshift4/ose-cli:latest
           command:

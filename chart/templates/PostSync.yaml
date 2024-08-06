@@ -4,20 +4,6 @@ metadata:
   name: cluster-setup
   namespace: {{ .Values.metadata.name | quote }}
 data:
-  nodepool_scale.sh: |
-    set -e
-
-    agent_count=-1
-    bmh_count=$(oc get bmh -n "${NAMESPACE}" --no-headers | wc -l)
-    until [ "${bmh_count}" -eq "${agent_count}" ]
-    do
-      sleep 60
-      agent_count=$(oc get agent -n "${NAMESPACE}" --no-headers | wc -l)
-    done
-    oc wait --timeout=1h --for=condition=requirementsmet -n "${NAMESPACE}" agent --all
-{{- range .Values.compute }}
-    oc -n "${NAMESPACE}" scale nodepool "{{ .name }}" --replicas {{ .replicas }}
-{{- end}}
   wait_node.sh: |
     set -e
 
@@ -136,21 +122,6 @@ spec:
     spec:
       serviceAccountName: hypershift-installer
       initContainers:
-        - name: scale-nodepool
-          image: {{ include "ocp_client" . }}
-          command:
-            - bash
-          args:
-            - /script/nodepool_scale.sh
-          env:
-            - name: NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
-          volumeMounts:
-            - name: cluster-setup
-              mountPath: "/script"
-              readOnly: true
         - name: wait-node
           image: {{ include "ocp_client" . }}
           command:

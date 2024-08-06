@@ -20,6 +20,7 @@ spec:
   clusterName: {{ $namespace | quote }}
   release:
     image: {{ $poolconfig.imageSet | default $imageset | quote }}
+  replicas: {{ .replicas }}
   management:
     upgradeType: InPlace
   platform:
