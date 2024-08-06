@@ -18,6 +18,16 @@ hypershift:
   clusterConfiguration: # Optional, see https://hypershift-docs.netlify.app/how-to/cluster-configuration/
   cliImage: mirror.example.com/openshift4/ose-cli:latest # Optional, may be needed in a disconnected environment. The Helm chart uses registry.redhat.io/openshift4/ose-cli:latest by default
   olmCatalogPlacement: "guest" # Optional, defaults to "management"
+  customManifests:
+    | # Optional, can be used to apply some manifests post-install. Below is an example of a custom catalog source
+    apiVersion: operators.coreos.com/v1alpha1
+    kind: CatalogSource
+    metadata:
+      name: redhat-operators
+      namespace: openshift-marketplace
+    spec:
+      image: mirror.com:8443/redhat/redhat-operator-index:v4.16
+      sourceType: grpc
   disableAllDefaultSources: true # Optional, defaults to false. Disables default catalog sources. olmCatalogPlacement must be set to "guest"
   nodePoolConfigs: # Optional, only required if you want to customize one of these values
     - name: worker

@@ -65,6 +65,20 @@ data:
     set -e
 
     oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
+  apply_custom_manifests.sh: |
+    set -e
+
+    cat << EOF | oc apply -f -
+    apiVersion: operators.coreos.com/v1alpha1
+    kind: CatalogSource
+    metadata:
+      name: redhat-operators
+      namespace: openshift-marketplace
+    spec:
+      image: mirror.com:8443/redhat/redhat-operator-index:v4.16
+      sourceType: grpc
+    
+    EOF
   wait_node.sh: |
     set -e
 
@@ -501,13 +515,29 @@ spec:
             - name: cluster-setup
               mountPath: "/script"
               readOnly: true
-      containers:
         - name: disable-default-catalog
           image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:1fc458ece66c8d4184b45b5c495a372a96b47432ae5a39844cd5837e3981685b
           command:
             - bash
           args:
             - /script/disable_default_catalog_sources.sh
+          env:
+            - name: KUBECONFIG
+              value: "/secrets/kubeconfig"
+          volumeMounts:
+            - name: kubeconfig
+              mountPath: "/secrets"
+              readOnly: true
+            - name: cluster-setup
+              mountPath: "/script"
+              readOnly: true
+      containers:
+        - name: apply-custom-manifests
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:1fc458ece66c8d4184b45b5c495a372a96b47432ae5a39844cd5837e3981685b
+          command:
+            - bash
+          args:
+            - /script/apply_custom_manifests.sh
           env:
             - name: KUBECONFIG
               value: "/secrets/kubeconfig"
