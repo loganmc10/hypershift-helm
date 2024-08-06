@@ -25,6 +25,9 @@ metadata:
   namespace: {{ .Values.metadata.name | quote }}
   annotations:
     helm.sh/hook-weight: "20"
+{{- if hasKey .Values.hypershift "controlPlaneOperatorImage" }}
+    hypershift.openshift.io/control-plane-operator-image: {{ .Values.hypershift.controlPlaneOperatorImage | quote }}
+{{- end }}
 spec:
   release:
     image: {{ .Values.hypershift.clusterImageSet | quote }}
