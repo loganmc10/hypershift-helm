@@ -170,7 +170,6 @@ spec:
               mountPath: "/script"
               readOnly: true
 {{- end }}
-      containers:
 {{- if hasKey .Values.hypershift "customManifests" }}
         - name: apply-custom-manifests
           image: {{ include "ocp_client" . }}
@@ -189,6 +188,7 @@ spec:
               mountPath: "/script"
               readOnly: true
 {{- end }}
+      containers:
         - name: configure-ingress
           image: {{ include "ocp_client" . }}
           command:
