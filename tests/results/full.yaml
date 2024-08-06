@@ -61,6 +61,10 @@ metadata:
   name: cluster-setup
   namespace: "test-cluster"
 data:
+  disable_default_catalog_sources.sh: |
+    set -e
+
+    oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
   wait_node.sh: |
     set -e
 
@@ -498,6 +502,22 @@ spec:
               mountPath: "/script"
               readOnly: true
       containers:
+        - name: disable-default-catalog
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:1fc458ece66c8d4184b45b5c495a372a96b47432ae5a39844cd5837e3981685b
+          command:
+            - bash
+          args:
+            - /script/disable_default_catalog_sources.sh
+          env:
+            - name: KUBECONFIG
+              value: "/secrets/kubeconfig"
+          volumeMounts:
+            - name: kubeconfig
+              mountPath: "/secrets"
+              readOnly: true
+            - name: cluster-setup
+              mountPath: "/script"
+              readOnly: true
         - name: configure-ingress
           image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:1fc458ece66c8d4184b45b5c495a372a96b47432ae5a39844cd5837e3981685b
           command:

@@ -18,6 +18,7 @@ hypershift:
   clusterConfiguration: # Optional, see https://hypershift-docs.netlify.app/how-to/cluster-configuration/
   cliImage: mirror.example.com/openshift4/ose-cli:latest # Optional, may be needed in a disconnected environment. The Helm chart uses registry.redhat.io/openshift4/ose-cli:latest by default
   olmCatalogPlacement: "guest" # Optional, defaults to "management"
+  disableAllDefaultSources: true # Optional, defaults to false. Disables default catalog sources. olmCatalogPlacement must be set to "guest"
   nodePoolConfigs: # Optional, only required if you want to customize one of these values
     - name: worker
       configRefs: # Optional, see https://hypershift-docs.netlify.app/reference/api/#hypershift.openshift.io/v1beta1.NodePoolSpec
