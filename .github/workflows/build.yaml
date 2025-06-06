@@ -1,4 +1,8 @@
 name: Build project
+
+permissions:
+  contents: read
+
 on:
   push:
     branches:
