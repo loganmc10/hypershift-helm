@@ -18,6 +18,7 @@ metadata:
   annotations:
     bmac.agent-install.openshift.io/role: "worker"
     bmac.agent-install.openshift.io/hostname: {{ .name | quote }}
+    inspect.metal3.io: disabled
     helm.sh/hook-weight: "15"
   labels:
     infraenvs.agent-install.openshift.io: {{ .role | quote }}
