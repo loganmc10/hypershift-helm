@@ -219,6 +219,7 @@ metadata:
   annotations:
     bmac.agent-install.openshift.io/role: "worker"
     bmac.agent-install.openshift.io/hostname: "openshift-worker-0"
+    inspect.metal3.io: disabled
     helm.sh/hook-weight: "15"
   labels:
     infraenvs.agent-install.openshift.io: "worker"
@@ -242,6 +243,7 @@ metadata:
   annotations:
     bmac.agent-install.openshift.io/role: "worker"
     bmac.agent-install.openshift.io/hostname: "openshift-worker-1"
+    inspect.metal3.io: disabled
     helm.sh/hook-weight: "15"
   labels:
     infraenvs.agent-install.openshift.io: "worker"
