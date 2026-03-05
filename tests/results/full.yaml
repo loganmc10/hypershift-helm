@@ -337,6 +337,15 @@ spec:
       servicePublishingStrategy:
         type: Route
   olmCatalogPlacement: "guest"
+  capabilities:
+    disabled:
+    - baremetal
+    - Console
+    - ImageRegistry
+    - Ingress
+    - Insights
+    - NodeTuning
+    - openshift-samples
 ---
 # Source: deploy-cluster/templates/MetalLB.yaml
 apiVersion: metallb.io/v1beta1
@@ -458,6 +467,9 @@ spec:
   config:
     - name: configMap1
     - name: configMap2
+  tuningConfig:
+    - name: configMap1
+    - name: configMap2
 ---
 # Source: deploy-cluster/templates/PatchApiSvc.yaml
 apiVersion: batch/v1
@@ -557,7 +569,8 @@ spec:
           command:
             - bash
           args:
-            - /script/ingress_setup.sh
+            - -c
+            - "echo Ingress capability is disabled, skipping ingress setup"
           env:
             - name: KUBECONFIG
               value: "/secrets/kubeconfig"

@@ -421,7 +421,6 @@ spec:
       agentLabelSelector:
         matchLabels:
           infraenvs.agent-install.openshift.io: "worker"
-  config:
 ---
 # Source: deploy-cluster/templates/PatchApiSvc.yaml
 apiVersion: batch/v1

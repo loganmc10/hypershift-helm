@@ -11,6 +11,9 @@ hypershift:
       configRefs:
         - name: configMap1
         - name: configMap2
+      tuningRefs:
+        - name: configMap1
+        - name: configMap3
     - name: pooltwo
       osImageVersion: "4.11"
       imageSet: quay.io/openshift-release-dev/ocp-release:4.11.0-x86_64

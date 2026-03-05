@@ -445,6 +445,9 @@ spec:
   config:
     - name: configMap1
     - name: configMap2
+  tuningConfig:
+    - name: configMap1
+    - name: configMap3
 ---
 # Source: deploy-cluster/templates/NodePool.yaml
 apiVersion: hypershift.openshift.io/v1beta1

@@ -85,3 +85,7 @@ spec:
 {{- if hasKey .Values.hypershift "olmCatalogPlacement" }}
   olmCatalogPlacement: {{ .Values.hypershift.olmCatalogPlacement | quote }}
 {{- end }}
+{{- if hasKey .Values.hypershift "capabilities" }}
+  capabilities:
+    {{- .Values.hypershift.capabilities | toYaml | nindent 4 }}
+{{- end }}

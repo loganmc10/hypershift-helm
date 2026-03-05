@@ -1,3 +1,4 @@
+{{ $capabilities := default dict .Values.hypershift.capabilities }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -194,7 +195,12 @@ spec:
           command:
             - bash
           args:
+{{- if not (has "Ingress" $capabilities.disabled) }}
             - /script/ingress_setup.sh
+{{- else }}
+            - -c
+            - "echo Ingress capability is disabled, skipping ingress setup"
+{{- end }}
           env:
             - name: KUBECONFIG
               value: "/secrets/kubeconfig"

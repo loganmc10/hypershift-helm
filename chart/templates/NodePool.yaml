@@ -29,9 +29,13 @@ spec:
       agentLabelSelector:
         matchLabels:
           infraenvs.agent-install.openshift.io: {{ .name | quote }}
-  config:
 {{- if hasKey $poolconfig "configRefs" }}
+  config:
     {{- $poolconfig.configRefs | toYaml | nindent 4 }}
+{{- end }}
+{{- if hasKey $poolconfig "tuningRefs" }}
+  tuningConfig:
+    {{- $poolconfig.tuningRefs | toYaml | nindent 4 }}
 {{- end }}
 ---
 {{- end }}
