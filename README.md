@@ -11,7 +11,7 @@ See a blog post about this solution [here](https://cloud.redhat.com/blog/using-g
 I have written an Ansible Playbook that can set up the management cluster as required, see [here](https://github.com/loganmc10/openshift-edge-installer/tree/main/provisioning).
 
 # DNS for the Hosted Cluster
-You need to create DNS entries for `api.<hosted-cluster-name>.<domain>` and `*.apps.<hosted-cluster-name>.<domain>`, just like you would for a standalone cluster.
+You need to create DNS entries for `api(-int).<hosted-cluster-name>.<domain>` and `*.apps.<hosted-cluster-name>.<domain>`, just like you would for a standalone cluster.
 ## API
 This Helm chart utilizes MetalLB (layer 2) on the **management** cluster in order to serve the API for the hosted cluster. This means that the IP address you choose for the Hosted Cluster API needs to be in the same subnet as the management cluster.
 ## Ingress
