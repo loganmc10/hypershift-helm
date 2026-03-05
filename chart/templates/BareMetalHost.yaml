@@ -29,7 +29,6 @@ spec:
     disableCertificateVerification: true
     credentialsName: "{{ .name }}-bmc-secret"
   bootMACAddress: {{ .bootMACAddress | quote }}
-  automatedCleaningMode: disabled
   online: true
   {{- if hasKey . "rootDeviceHints" }}
   rootDeviceHints:
