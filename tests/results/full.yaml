@@ -248,6 +248,7 @@ spec:
     disableCertificateVerification: true
     credentialsName: "openshift-worker-0-bmc-secret"
   bootMACAddress: "aa:aa:aa:aa:aa:aa"
+  automatedCleaningMode: disabled
   online: true
   rootDeviceHints:
     hctl: "1:0:0:0"
@@ -272,6 +273,7 @@ spec:
     disableCertificateVerification: true
     credentialsName: "openshift-worker-1-bmc-secret"
   bootMACAddress: "bb:bb:bb:bb:bb:bb"
+  automatedCleaningMode: disabled
   online: true
   rootDeviceHints:
     hctl: "2:0:0:0"
