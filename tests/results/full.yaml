@@ -4,6 +4,7 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: "test-cluster"
+
 ---
 # Source: deploy-cluster/templates/RBAC.yaml
 apiVersion: v1
@@ -11,6 +12,7 @@ kind: ServiceAccount
 metadata:
   name: hypershift-installer
   namespace: "test-cluster"
+
 ---
 # Source: deploy-cluster/templates/BareMetalHost.yaml
 apiVersion: v1
@@ -53,6 +55,7 @@ metadata:
   name: assisted-deployment-pull-secret
   namespace: "test-cluster"
 type: kubernetes.io/dockerconfigjson
+
 ---
 # Source: deploy-cluster/templates/PostSync.yaml
 apiVersion: v1
@@ -194,6 +197,7 @@ rules:
       - agents
     verbs:
       - "*"
+
 ---
 # Source: deploy-cluster/templates/RBAC.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -346,6 +350,7 @@ spec:
     - Insights
     - NodeTuning
     - openshift-samples
+
 ---
 # Source: deploy-cluster/templates/MetalLB.yaml
 apiVersion: metallb.io/v1beta1
@@ -390,6 +395,7 @@ metadata:
 spec:
   ipAddressPools:
     - "test-cluster-api-address-pool"
+
 ---
 # Source: deploy-cluster/templates/NMStateConfig.yaml
 apiVersion: agent-install.openshift.io/v1beta1
@@ -499,6 +505,7 @@ spec:
             - -p
             - '{"metadata": {"annotations": {"metallb.universe.tf/address-pool": "test-cluster-api-address-pool"}}}'
       restartPolicy: OnFailure
+
 ---
 # Source: deploy-cluster/templates/PostSync.yaml
 apiVersion: batch/v1
@@ -589,3 +596,4 @@ spec:
         - name: cluster-setup
           configMap:
             name: cluster-setup
+
