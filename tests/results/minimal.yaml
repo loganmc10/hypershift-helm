@@ -24,6 +24,7 @@ metadata:
   name: "openshift-worker-0-bmc-secret"
   namespace: "test-cluster"
 type: Opaque
+
 ---
 # Source: deploy-cluster/templates/BareMetalHost.yaml
 apiVersion: v1
@@ -35,6 +36,7 @@ metadata:
   name: "openshift-worker-1-bmc-secret"
   namespace: "test-cluster"
 type: Opaque
+
 ---
 # Source: deploy-cluster/templates/HostedCluster.yaml
 apiVersion: v1
@@ -45,6 +47,7 @@ metadata:
 data:
   id_rsa.pub: "c3NoLXJzYSAuLi4K"
 type: Opaque
+
 ---
 # Source: deploy-cluster/templates/PullSecret.yaml
 apiVersion: v1
@@ -165,6 +168,7 @@ data:
         ingresscontroller.operator.openshift.io/deployment-ingresscontroller: default
       type: LoadBalancer
     EOF
+
 ---
 # Source: deploy-cluster/templates/CApi.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -196,6 +200,7 @@ rules:
     verbs:
       - get
       - patch
+
 ---
 # Source: deploy-cluster/templates/RBAC.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -213,6 +218,7 @@ roleRef:
   kind: Role
   name: hypershift-installer-role
   apiGroup: rbac.authorization.k8s.io
+
 ---
 # Source: deploy-cluster/templates/BareMetalHost.yaml
 apiVersion: metal3.io/v1alpha1
@@ -238,6 +244,7 @@ spec:
   online: true
   rootDeviceHints:
     hctl: "1:0:0:0"
+
 ---
 # Source: deploy-cluster/templates/BareMetalHost.yaml
 apiVersion: metal3.io/v1alpha1
@@ -263,6 +270,7 @@ spec:
   online: true
   rootDeviceHints:
     hctl: "2:0:0:0"
+
 ---
 # Source: deploy-cluster/templates/HostedCluster.yaml
 apiVersion: hypershift.openshift.io/v1beta1
@@ -325,6 +333,7 @@ spec:
   addresses:
     - 192.168.2.2/32
   autoAssign: false
+
 ---
 # Source: deploy-cluster/templates/InfraEnv.yaml
 apiVersion: agent-install.openshift.io/v1beta1
@@ -342,6 +351,7 @@ spec:
   nmStateConfigLabelSelector:
     matchLabels:
       nmstate-cluster: "worker"
+
 ---
 # Source: deploy-cluster/templates/MetalLB.yaml
 apiVersion: metallb.io/v1beta1
@@ -379,6 +389,7 @@ spec:
   interfaces:
     - name: "eno1"
       macAddress: "aa:aa:aa:aa:aa:aa"
+
 ---
 # Source: deploy-cluster/templates/NMStateConfig.yaml
 apiVersion: agent-install.openshift.io/v1beta1
@@ -405,6 +416,7 @@ spec:
   interfaces:
     - name: "eno1"
       macAddress: "bb:bb:bb:bb:bb:bb"
+
 ---
 # Source: deploy-cluster/templates/NodePool.yaml
 apiVersion: hypershift.openshift.io/v1beta1
